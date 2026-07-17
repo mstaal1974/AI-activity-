@@ -54,8 +54,9 @@ logo entry.
 ## Design notes
 
 - **Staged simulation only.** No file input, no camera access, no upload. All
-  "extracted" data is fictional; the sample photos are deliberately simple SVG
-  illustrations — never photorealistic imagery.
+  "extracted" data is fictional. The four sample photos are fictional,
+  AI-generated props (of made-up people and documents) embedded as compressed
+  JPEG data URIs, so the file stays self-contained and works offline.
 - **Accessible:** keyboard-operable, `prefers-reduced-motion` respected (animations
   resolve to their final state), ARIA roles on the chat log and exposure meter.
 - **Responsive** down to mobile.
@@ -65,7 +66,10 @@ logo entry.
 
 All copy and scenarios live in the `DATA`, `BAD_LIST` and `GOOD_LIST` objects
 inside the `<script>` block of `index.html`. Add or edit a scenario by copying an
-existing entry (label, caption, reply, `summary` stats, and four `layers`). To add
-the on-photo redaction boxes for a new scenario, add a matching entry to
-`HOTSPOTS` (coordinates are in the SVG's 236×177 space, which maps 1:1 to the
-photo frame) and an `EXHIBIT` letter.
+existing entry (label, caption, reply, `summary` stats, and four `layers`). The
+photos themselves live in the `IMAGES` map as data URIs, with native aspect
+ratios in `RATIOS`. To add the on-photo redaction boxes for a new scenario, add a
+matching entry to `HOTSPOTS` — each box is `{ci, n, c, x, y, w, h}` where `ci` is
+the Layer-1 chip index it points to, `n` is the badge number shared between the
+box and that chip, and `x/y/w/h` are **percentages of the photo** — plus an
+`EXHIBIT` letter. Chips with no visible location in the photo simply get no box.
