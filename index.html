@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Photo, Everything It Tells Them — an AI privacy demo</title>
+<meta name="description" content="An interactive privacy-awareness activity: send one sensitive photo to a simulated AI assistant and watch the forensic extraction log reveal everything the model really read. Staged simulation — no real upload.">
+<style>
+  :root{
+    --paper:#f2efe7;
+    --panel:#ffffff;
+    --panel-soft:#fbfbf9;
+    --ink:#2d2d2a;
+    --ink-2:#3a3935;
+    --muted:#57544c;
+    --faint:#8f8b7f;
+    --hair:#aca698;
+    --line:#e8e5d9;
+    --line-2:#f0ede4;
+    --red:#b3231b;
+    --red-soft:#fbeeec;
+    --red-line:#e6b8b4;
+    --amber:#c97a10;
+    --teal:#0f766e;
+    --dark:#1c1b19;
+    --dark-card:#232220;
+    --dark-line:#322f2b;
+    --brand:#0f766e;            /* client-brandable accent — swap via theme switch */
+    --mono:ui-monospace,'SF Mono','IBM Plex Mono','Roboto Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  body[data-theme="abc"]{--brand:#1d4e89}
+  body[data-theme="slate"]{--brand:#334155}
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink-2);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal)}
+  a:hover{color:#0b5a54}
+
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes dot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+  @keyframes slidein{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  @keyframes cardin{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+  @keyframes hintpulse{0%{box-shadow:0 0 0 0 rgba(179,35,27,.42)}70%{box-shadow:0 0 0 11px rgba(179,35,27,0)}100%{box-shadow:0 0 0 0 rgba(179,35,27,0)}}
+  @keyframes scan{0%{top:-4%}100%{top:104%}}
+  @keyframes chipin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes boxin{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:scale(1)}}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+  /* ---------- header ---------- */
+  header{padding:40px 0 26px}
+  .head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:12px;font-weight:500}
+  h1{font-weight:800;font-size:clamp(28px,4.6vw,50px);line-height:1.06;letter-spacing:-.025em;color:var(--ink);max-width:17ch}
+  h1 .redact{position:relative;white-space:nowrap;color:var(--ink)}
+  h1 .redact::after{content:"";position:absolute;left:-.04em;right:-.04em;top:9%;bottom:9%;background:var(--ink);border-radius:2px;transform-origin:left center;transition:transform .85s cubic-bezier(.7,0,.2,1)}
+  body.revealed h1 .redact::after{transform:scaleX(0)}
+  body.revealed h1 .redact{color:var(--red)}
+  .lede{margin-top:18px;max-width:64ch;font-size:16.5px;color:var(--muted)}
+
+  .brand-area{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex:none}
+  .theme-switch{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel)}
+  .theme-switch button{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border:none;background:transparent;color:var(--hair);cursor:pointer;border-right:1px solid var(--line)}
+  .theme-switch button:last-child{border-right:none}
+  .theme-switch button.active{background:var(--brand);color:#fff}
+  .logo-slot{height:38px;min-width:120px;display:flex;align-items:center;justify-content:center}
+  .logo-ph{width:120px;height:38px;border:1.5px dashed #cbc5b5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--hair)}
+  .logo-word{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--brand)}
+  .logo-word .mk{width:26px;height:26px;border-radius:7px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+  .logo-word small{font-weight:500;font-size:12px;color:var(--faint);letter-spacing:.02em}
+
+  /* ---------- app window ---------- */
+  .app-shell{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--brand);border-radius:20px 20px 24px 24px;box-shadow:0 30px 60px -30px rgba(45,45,42,.35);overflow:hidden;margin-top:8px}
+  .app{display:flex;min-height:560px}
+  .sidebar{width:248px;flex:none;background:var(--panel-soft);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 16px}
+  .newchat{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:var(--sans);box-shadow:0 1px 2px rgba(45,45,42,.05)}
+  .newchat:hover{background:#fff}
+  .side-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--hair);font-weight:600;margin:24px 8px 10px}
+  .side-item{padding:9px 12px;border-radius:9px;font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
+  .side-item.active{background:#f0ede4;color:var(--ink)}
+  .side-user{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 2px;border-top:1px solid var(--line)}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--panel)}
+  .main-head{flex:none;display:flex;align-items:center;gap:11px;padding:16px 22px;border-bottom:1px solid var(--line-2)}
+  .bot-badge{width:34px;height:34px;border-radius:9px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex:none}
+  .bot-name{font-weight:600;font-size:15px;color:var(--ink)}
+  .bot-model{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--hair)}
+
+  .thread{flex:1 1 auto;padding:26px 22px}
+  .thread-inner{max-width:720px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+  .thread-inner.center{justify-content:center}
+
+  .greeting{text-align:center;padding:8px 0 4px}
+  .greeting-badge{width:62px;height:62px;border-radius:17px;background:var(--ink);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 16px 30px -12px rgba(45,45,42,.5);margin-bottom:20px}
+  .greeting h2{font-weight:700;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.025em;color:var(--ink)}
+  .greeting p{font-size:14.5px;color:var(--faint);margin-top:12px}
+
+  .picker{margin-top:26px;background:var(--panel-soft);border:1px solid var(--line);border-radius:18px;padding:20px;animation:cardin .3s both}
+  .picker-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px}
+  .picker-head p{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--hair)}
+  .icon-btn{background:none;border:none;color:var(--hair);cursor:pointer;line-height:0;padding:2px}
+  .icon-btn:hover{color:var(--muted)}
+  .picker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .op-card{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:8px;cursor:pointer;font-family:var(--sans);transition:transform .18s ease,box-shadow .18s ease}
+  .op-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px -12px rgba(20,20,18,.18)}
+  .op-card .thumb{aspect-ratio:4/3;border-radius:9px;overflow:hidden;border:1px solid #eee9dd}
+  .op-card .thumb svg{display:block;width:100%;height:100%}
+  .op-card .c-label{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.25;padding:9px 3px 0}
+  .op-card .c-cap{font-family:var(--mono);font-size:10px;color:var(--hair);margin-top:3px;padding:0 3px}
+
+  .msg-user{align-self:flex-end;max-width:80%;margin-bottom:22px;animation:pop .35s both}
+  .bubble{background:#f2f0e8;border:1px solid #eae6d9;border-radius:18px 18px 5px 18px;padding:13px 15px;font-size:15px;color:var(--ink)}
+  .bubble .photo{margin-top:12px;width:230px;max-width:100%;border:1px solid #e8e3d5;border-radius:11px;overflow:hidden;background:#fff}
+  .bubble .photo .frame{aspect-ratio:4/3;position:relative;overflow:hidden}
+  .bubble .photo .frame svg{display:block;width:100%;height:100%}
+  .bubble .photo .cap{font-family:var(--mono);font-size:10.5px;padding:7px 10px;color:var(--faint);border-top:1px solid var(--line-2);display:flex;justify-content:space-between;gap:8px}
+
+  /* exhibit dressing */
+  .crop{position:absolute;width:13px;height:13px;pointer-events:none;z-index:3;filter:drop-shadow(0 0 1px rgba(0,0,0,.55))}
+  .crop.tl{top:6px;left:6px;border-top:2px solid #fff;border-left:2px solid #fff}
+  .crop.tr{top:6px;right:6px;border-top:2px solid #fff;border-right:2px solid #fff}
+  .crop.bl{bottom:6px;left:6px;border-bottom:2px solid #fff;border-left:2px solid #fff}
+  .crop.br{bottom:6px;right:6px;border-bottom:2px solid #fff;border-right:2px solid #fff}
+  .exhibit-tag{position:absolute;top:8px;left:8px;z-index:3;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#fff;background:rgba(28,27,25,.72);padding:3px 7px;border-radius:5px;backdrop-filter:blur(1px)}
+  .scanline{position:absolute;left:0;right:0;top:-4%;height:14%;z-index:2;background:linear-gradient(180deg,rgba(95,192,180,0) 0%,rgba(95,192,180,.55) 45%,rgba(15,118,110,.85) 50%,rgba(95,192,180,.55) 55%,rgba(95,192,180,0) 100%);box-shadow:0 0 12px 2px rgba(15,118,110,.4);animation:scan 1.5s cubic-bezier(.5,0,.5,1) infinite;pointer-events:none;mix-blend-mode:screen}
+  .scan-badge{position:absolute;left:8px;bottom:8px;z-index:3;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#eafffb;background:rgba(15,118,110,.85);padding:3px 7px;border-radius:5px}
+  .exbox{position:absolute;z-index:2;border-radius:3px;background:rgba(20,20,18,.82);border:1.5px solid var(--red);animation:boxin .45s both}
+  .exbox.warn{border-color:var(--amber);background:rgba(20,20,18,.62)}
+  .exbox .bn{position:absolute;top:-9px;left:-9px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;font-family:var(--mono);font-size:10px;font-weight:700;line-height:17px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .exbox.warn .bn{background:var(--amber)}
+
+  .msg-ai{display:flex;gap:12px;align-items:flex-start;margin-bottom:22px;animation:pop .35s both}
+  .ai-badge{width:30px;height:30px;flex:none;border-radius:9px;background:var(--ink);display:flex;align-items:center;justify-content:center}
+  .ai-text{font-size:15px;color:var(--ink);padding-top:5px;line-height:1.6}
+  .typing{display:flex;gap:5px;padding:14px 4px}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#b8b4a8;animation:dot 1.2s infinite}
+  .typing span:nth-child(2){animation-delay:.2s}
+  .typing span:nth-child(3){animation-delay:.4s}
+
+  .callout{border:1.5px solid var(--red-line);background:var(--red-soft);border-radius:15px;padding:17px 19px;margin-bottom:8px;animation:pop .4s both}
+  .callout .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--red);margin-bottom:7px}
+  .callout p{font-size:14.5px;color:#5c3f3c;margin-bottom:15px}
+  .reveal-btn{font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.02em;padding:11px 18px;border-radius:10px;border:none;cursor:pointer;background:var(--red);color:#fff}
+  .reveal-btn:disabled{background:#e2c4c1;color:#7d2620;cursor:default}
+
+  /* ---------- composer ---------- */
+  .composer-wrap{flex:none;padding:14px 22px 20px;border-top:1px solid var(--line-2)}
+  .composer{max-width:720px;margin:0 auto;border:1px solid #e3ded0;border-radius:22px;background:var(--panel);box-shadow:0 2px 8px -4px rgba(45,45,42,.12);padding:8px 8px 8px 7px}
+  .attach-chip{display:inline-flex;align-items:center;gap:10px;margin:3px 4px 9px;padding:6px 9px 6px 6px;background:#f4f2ea;border:1px solid #e8e3d5;border-radius:11px}
+  .attach-chip .cthumb{width:36px;height:36px;border-radius:7px;overflow:hidden;flex:none;border:1px solid #e3ded0}
+  .attach-chip .cthumb svg{display:block;width:100%;height:100%}
+  .attach-chip .cname{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .composer-row{display:flex;align-items:flex-end;gap:9px}
+  .attach-btn{width:34px;height:34px;flex:none;border-radius:50%;line-height:0;cursor:pointer;display:flex;align-items:center;justify-content:center;align-self:flex-end;margin-bottom:5px;border:1px solid #e3ded0;background:#faf8f2;color:var(--muted)}
+  .attach-btn.pulse{border:1.5px solid var(--red);background:#fff;color:var(--red);animation:hintpulse 1.8s infinite}
+  .composer-text{flex:1;min-height:40px;display:flex;align-items:center;font-size:15px;padding:8px 2px;color:var(--hair)}
+  .composer-text.filled{color:var(--ink)}
+  .send-btn{width:38px;height:38px;flex:none;border-radius:50%;line-height:0;cursor:pointer;display:flex;align-items:center;justify-content:center;align-self:flex-end;margin-bottom:3px;border:none;background:var(--ink);color:#fff}
+  .send-btn:disabled{background:#efece3;color:#c2bdae;cursor:default}
+  .composer-note{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--hair);margin-top:11px}
+
+  /* ---------- forensic x-ray ---------- */
+  .xray{margin-top:26px;background:var(--dark);color:#f4f1e9;border-radius:20px;overflow:hidden;animation:slidein .5s both;box-shadow:0 30px 60px -30px rgba(28,27,25,.5)}
+  .xray-head{padding:26px 30px 6px}
+  .xray-head .k{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#e8a29a;margin-bottom:9px}
+  .xray-head h2{font-weight:800;font-size:clamp(22px,3vw,30px);letter-spacing:-.02em;margin-bottom:9px;color:#fbf9f3}
+  .xray-head p{font-size:14.5px;color:#b8b3a6;max-width:70ch}
+  .meter-block{padding:16px 30px 4px}
+  .meter-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;color:#c8c3b7}
+  .meter-label .pct{font-weight:600;color:#f4f1e9;font-variant-numeric:tabular-nums}
+  .meter{height:14px;border:1.5px solid #3a3833;background:#252320;overflow:hidden;border-radius:7px}
+  .meter-fill{height:100%;width:0%;background:repeating-linear-gradient(-45deg,var(--red),var(--red) 8px,#d8534a 8px,#d8534a 16px)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;padding:12px 30px 2px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#9a958a}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:11px;height:11px;border-radius:3px;border:1.5px solid;display:inline-block}
+  .legend .n i{border-color:#3a3833;background:#2a2825}
+  .legend .w i{border-color:#d9922b;background:rgba(201,122,16,.3)}
+  .legend .d i{border-color:#e8564d;background:rgba(179,35,27,.35)}
+  .legend .tally{margin-left:auto;color:#e8a29a}
+  .legend .tally b{color:#ffb1a9;font-variant-numeric:tabular-nums}
+  .layers{padding:14px 30px 10px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .layer{background:var(--dark-card);border:1px solid var(--dark-line);border-radius:14px;padding:18px 20px;transition:opacity .5s;opacity:.24}
+  .layer.on{opacity:1}
+  .layer-tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;margin-bottom:12px;border-radius:6px;border:1.5px solid}
+  .layer-tag.l1{color:#5fc0b4;border-color:#2e6f68;background:rgba(15,118,110,.18)}
+  .layer-tag.l2{color:#f2c887;border-color:#7a5a1f;background:rgba(201,122,16,.16)}
+  .layer-tag.l3{color:#ffb1a9;border-color:#7d2620;background:rgba(179,35,27,.2)}
+  .layer-tag.l4{color:#1c1b19;background:#e8e2d2;border-color:#e8e2d2}
+  .layer h3{font-weight:600;font-size:16.5px;letter-spacing:-.01em;margin-bottom:12px;color:#fbf9f3}
+  .layer-chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;padding:5px 9px;border-radius:6px;border:1.5px solid #3a3833;background:#2a2825;color:#c8c3b7}
+  .layer.on .chip{animation:chipin .35s both}
+  .chip.warn{border-color:#d9922b;background:rgba(201,122,16,.18);color:#f2c887}
+  .chip.danger{border-color:#e8564d;background:rgba(179,35,27,.22);color:#ffb1a9;font-weight:600}
+  .chip .chip-pin{width:15px;height:15px;border-radius:50%;font-size:9.5px;font-weight:700;line-height:15px;text-align:center;flex:none;color:#1c1b19}
+  .chip.danger .chip-pin{background:#e8564d}
+  .chip.warn .chip-pin{background:#e0a94a}
+  .layer .note{font-size:13px;color:#b0ab9e;margin-top:12px;max-width:56ch;line-height:1.55}
+
+  .summary{padding:22px 30px 30px;animation:pop .5s both}
+  .summary .k{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#e8a29a;margin-bottom:6px}
+  .summary h3{font-weight:800;font-size:clamp(19px,2.6vw,25px);letter-spacing:-.01em;margin-bottom:18px;color:#fbf9f3}
+  .summary-grid{display:flex;flex-wrap:wrap;gap:14px}
+  .stat{flex:1;min-width:150px;border:1px solid var(--dark-line);background:var(--dark-card);border-radius:12px;padding:17px 19px}
+  .stat .n{font-weight:800;font-size:44px;line-height:1;letter-spacing:-.03em;color:#e8564d;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:13px;color:#c8c3b7;margin-top:7px}
+  .summary-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;align-items:center}
+  .dl-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 16px;border-radius:10px;cursor:pointer;background:var(--brand);border:none;color:#fff}
+  .dl-btn:hover{filter:brightness(1.08)}
+  .ghost-btn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 16px;border-radius:10px;cursor:pointer;background:transparent;border:1.5px solid #4a4740;color:#e4dfd3}
+  .ghost-btn:hover{border-color:#6a655c;background:rgba(255,255,255,.03)}
+
+  /* ---------- afterlife ---------- */
+  .after{padding:42px 0 10px}
+  .after h2{font-weight:800;font-size:clamp(23px,3.2vw,32px);letter-spacing:-.02em;margin-bottom:9px;color:var(--ink)}
+  .after .sub{color:var(--muted);max-width:66ch;margin-bottom:24px;font-size:16px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
+  .card h3{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:15px;padding-bottom:12px;border-bottom:1.5px solid var(--ink)}
+  .card.bad h3{color:var(--red)}
+  .card.good h3{color:var(--teal)}
+  .card ul{list-style:none}
+  .card li{padding:11px 0 11px 28px;position:relative;font-size:14.5px;border-bottom:1px solid var(--line-2);color:var(--ink-2)}
+  .card li:last-child{border-bottom:none}
+  .card.bad li::before{content:"✕";position:absolute;left:2px;color:var(--red);font-weight:700}
+  .card.good li::before{content:"✓";position:absolute;left:2px;color:var(--teal);font-weight:700}
+
+  footer{border-top:2px solid var(--ink);margin-top:34px;padding:22px 0 46px}
+  footer p{font-family:var(--mono);font-size:11.5px;color:#6b675c;max-width:82ch;line-height:1.6}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .sidebar{display:none}
+    .app{min-height:0}
+    .picker-grid{grid-template-columns:1fr 1fr}
+    .layers{grid-template-columns:1fr}
+    .cols{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .picker-grid{grid-template-columns:1fr 1fr}
+    .xray-head,.meter-block,.legend,.layers,.summary{padding-left:18px;padding-right:18px}
+    .thread{padding:20px 14px}
+    .brand-area{align-items:flex-start}
+  }
+</style>
+</head>
+<body data-theme="neutral">
+
+<div class="wrap">
+  <header>
+    <div class="head-row">
+      <div>
+        <p class="eyebrow">Interactive activity · AI &amp; privacy awareness</p>
+        <h1>You sent one photo. It read <span class="redact">everything in the frame.</span></h1>
+      </div>
+      <div class="brand-area">
+        <div class="theme-switch" role="group" aria-label="Brand theme">
+          <button type="button" data-theme-set="neutral" class="active">Neutral</button>
+          <button type="button" data-theme-set="abc">ABC Training</button>
+          <button type="button" data-theme-set="slate">Slate</button>
+        </div>
+        <div class="logo-slot" id="logoSlot"></div>
+      </div>
+    </div>
+    <p class="lede">This simulation shows what actually happens when a "quick question" to an AI chatbot includes a sensitive photo. No real photo is uploaded here — everything below is a staged reconstruction. Pick a scenario, hit send, and watch the right-hand panel.</p>
+  </header>
+
+  <!-- APP WINDOW -->
+  <div class="app-shell">
+    <div class="app">
+      <aside class="sidebar" aria-hidden="true">
+        <button class="newchat" type="button" data-act="reset">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New chat
+        </button>
+        <p class="side-label">Recent</p>
+        <div class="side-item active">Bali trip passport check</div>
+        <div class="side-item">Home office feedback</div>
+        <div class="side-item">Explain specialist letter</div>
+        <div class="side-user">
+          <span class="avatar">U</span>
+          <span style="font-size:13.5px;font-weight:500;color:var(--ink-2)">Training user</span>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="main-head">
+          <span class="bot-badge"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" fill="#fff"/></svg></span>
+          <span class="bot-name">Assistant</span>
+          <span class="bot-model">GENERAL MODEL 4.0</span>
+        </div>
+
+        <div class="thread" id="thread" role="log" aria-live="polite">
+          <div class="thread-inner" id="threadInner"></div>
+        </div>
+
+        <div class="composer-wrap">
+          <div class="composer" id="composer"></div>
+          <p class="composer-note">Simulation for training. No file is uploaded or analysed by this page.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- FORENSIC X-RAY -->
+  <section id="xrayMount" aria-live="polite"></section>
+
+  <!-- AFTERLIFE -->
+  <div class="after">
+    <h2>The photo's afterlife</h2>
+    <p class="sub">The risk isn't just what the model reads in the moment. It's where the image and everything extracted from it can end up afterwards — and how little of that you control once you've hit send.</p>
+    <div class="cols">
+      <div class="card bad">
+        <h3>What can happen after upload</h3>
+        <ul id="badList"></ul>
+      </div>
+      <div class="card good">
+        <h3>What to do instead</h3>
+        <ul id="goodList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Staged simulation for education and training. No image is uploaded or analysed by this page; all "extracted" data is fictional. The point stands: a photo is never just a photo — it's pixels, metadata, and everything a model can infer from both.</p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ *  One Photo, Everything It Tells Them
+ *  Self-contained privacy-awareness activity. Vanilla JS state machine.
+ *  Staged simulation only — no upload, no file input, no camera.
+ * ------------------------------------------------------------------ */
+
+const SPARKLE = '<svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" fill="#fff"/></svg>';
+const REDUCED = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const SVGS = {
+  passport: `<svg viewBox="0 0 236 177" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a passport lying open on a desk"><defs><linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a7358"/><stop offset="1" stop-color="#6e5a42"/></linearGradient></defs><rect width="236" height="177" fill="url(#wood)"/><rect x="20" y="34" width="150" height="112" rx="6" fill="#1b2f5e"/><rect x="20" y="34" width="75" height="112" rx="6" fill="#22376a"/><rect x="32" y="48" width="40" height="50" fill="#d9d2c2"/><circle cx="52" cy="66" r="10" fill="#a08b72"/><path d="M38 100 q14 -18 28 0z" fill="#a08b72"/><rect x="104" y="52" width="56" height="5" fill="#c9c2b0"/><rect x="104" y="64" width="44" height="4" fill="#c9c2b0"/><rect x="104" y="74" width="50" height="4" fill="#c9c2b0"/><rect x="104" y="84" width="38" height="4" fill="#c9c2b0"/><rect x="30" y="120" width="126" height="8" fill="#e8e2d2"/><rect x="30" y="132" width="126" height="8" fill="#dcd5c3"/><rect x="182" y="26" width="46" height="66" rx="5" fill="#232323"/><rect x="186" y="32" width="38" height="48" fill="#5fa9c4"/><rect x="180" y="112" width="52" height="40" rx="3" fill="#efe9da"/><rect x="186" y="120" width="40" height="4" fill="#c3bca6"/><rect x="186" y="130" width="34" height="4" fill="#c3bca6"/><rect x="186" y="140" width="40" height="4" fill="#c3bca6"/></svg>`,
+  selfie: `<svg viewBox="0 0 236 177" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a selfie taken in a home office"><rect width="236" height="177" fill="#e7e0d1"/><rect x="0" y="0" width="236" height="112" fill="#efe9db"/><rect x="150" y="18" width="72" height="56" fill="#fff" stroke="#8a8371"/><rect x="156" y="26" width="60" height="5" fill="#c2baa4"/><rect x="156" y="38" width="48" height="5" fill="#c2baa4"/><rect x="156" y="50" width="54" height="5" fill="#c2baa4"/><rect x="14" y="22" width="62" height="46" fill="#2b2b2b"/><rect x="18" y="26" width="54" height="38" fill="#4a7fa0"/><rect x="26" y="72" width="120" height="8" fill="#8f7c5f"/><circle cx="112" cy="96" r="34" fill="#c79b76"/><path d="M112 66 q-20 -4 -26 14 q26 -8 52 0 q-6 -18 -26 -14z" fill="#5a4632"/><path d="M74 177 q38 -58 76 0z" fill="#5a6b4f"/><rect x="0" y="112" width="236" height="65" fill="#a89272"/><rect x="150" y="122" width="64" height="30" rx="3" fill="#efe9da"/><rect x="156" y="129" width="52" height="4" fill="#c3bca6"/><rect x="156" y="139" width="40" height="4" fill="#c3bca6"/></svg>`,
+  medical: `<svg viewBox="0 0 236 177" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a medical letter on a kitchen bench"><defs><linearGradient id="bench" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bda88a"/><stop offset="1" stop-color="#9c876a"/></linearGradient></defs><rect width="236" height="177" fill="url(#bench)"/><rect x="40" y="14" width="156" height="150" rx="3" fill="#fdfbf4" transform="rotate(-2 118 89)"/><rect x="56" y="26" width="56" height="11" fill="#3d6b8f"/><rect x="56" y="46" width="128" height="5" fill="#b9b19c"/><rect x="56" y="56" width="108" height="5" fill="#b9b19c"/><rect x="56" y="72" width="132" height="4" fill="#cfc8b4"/><rect x="56" y="82" width="132" height="4" fill="#cfc8b4"/><rect x="56" y="92" width="118" height="4" fill="#cfc8b4"/><rect x="56" y="102" width="132" height="4" fill="#cfc8b4"/><rect x="56" y="112" width="96" height="4" fill="#cfc8b4"/><rect x="56" y="130" width="64" height="6" fill="#b9b19c"/><rect x="56" y="144" width="46" height="9" fill="#8ba3b5"/><rect x="0" y="0" width="26" height="177" fill="#7d6b52"/></svg>`,
+  lab: `<svg viewBox="0 0 236 177" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a pathology work order on a laboratory bench beside a microscope"><rect width="236" height="177" fill="#eef0ef"/><rect x="0" y="118" width="236" height="59" fill="#d3d6d4"/><rect x="0" y="112" width="236" height="8" fill="#c2c5c3"/><rect x="120" y="30" width="104" height="110" rx="3" fill="#fdfdfb" stroke="#dcdcd4" transform="rotate(2 172 85)"/><rect x="132" y="44" width="46" height="8" fill="#3d6b8f"/><rect x="132" y="60" width="80" height="4" fill="#c4c2b6"/><rect x="132" y="70" width="66" height="4" fill="#c4c2b6"/><rect x="132" y="84" width="80" height="3" fill="#d6d4c8"/><rect x="132" y="92" width="80" height="3" fill="#d6d4c8"/><rect x="132" y="100" width="60" height="3" fill="#d6d4c8"/><rect x="132" y="114" width="70" height="16" fill="#1c1c1c"/><rect x="134" y="117" width="66" height="2" fill="#fff"/><rect x="134" y="121" width="66" height="2" fill="#fff"/><rect x="134" y="125" width="66" height="2" fill="#fff"/><g transform="translate(38 40)"><rect x="-14" y="86" width="60" height="10" rx="3" fill="#3a3a3a"/><rect x="6" y="34" width="10" height="54" fill="#4a4a4a"/><rect x="-2" y="30" width="26" height="12" rx="3" fill="#5a5a5a"/><rect x="8" y="12" width="6" height="20" fill="#5a5a5a"/><circle cx="11" cy="10" r="8" fill="#6a6a6a"/><rect x="2" y="70" width="20" height="8" fill="#666"/><circle cx="11" cy="60" r="6" fill="#8fb9c9"/></g><rect x="70" y="150" width="12" height="20" rx="2" fill="#b23"/><rect x="88" y="150" width="12" height="20" rx="2" fill="#e8b84b"/></svg>`
+};
+
+/* Exhibit letters + hotspot maps (coords in the 236x177 viewBox, which maps 1:1 to the 4:3 frame).
+   Each hotspot aligns to a Layer-1 chip by index; n is the badge number shared with that chip. */
+const EXHIBIT = { passport:"A", selfie:"B", medical:"C", lab:"D" };
+const HOTSPOTS = {
+  passport:[
+    {n:1,c:"danger",x:100,y:47,w:66,h:9},
+    {n:2,c:"danger",x:100,y:60,w:58,h:8},
+    {n:3,c:"danger",x:100,y:70,w:54,h:8},
+    {n:4,c:"danger",x:28,y:118,w:130,h:22},
+    {n:5,c:"warn",x:30,y:46,w:44,h:54},
+    {n:6,c:"warn",x:104,y:82,w:40,h:7},
+    {n:7,c:"danger",x:180,y:24,w:50,h:60},
+    {n:8,c:"danger",x:178,y:110,w:56,h:44}
+  ],
+  selfie:[
+    {n:1,c:"warn",x:76,y:60,w:72,h:72},
+    {n:2,c:"danger",x:12,y:20,w:66,h:50},
+    {n:3,c:"warn",x:148,y:16,w:76,h:60},
+    {n:4,c:"danger",x:148,y:120,w:68,h:34},
+    {n:5,c:"warn",x:80,y:2,w:64,h:26}
+  ],
+  medical:[
+    {n:1,c:"danger",x:54,y:24,w:60,h:16},
+    {n:2,c:"danger",x:54,y:44,w:132,h:16},
+    {n:3,c:"danger",x:54,y:70,w:134,h:48},
+    {n:4,c:"warn",x:54,y:128,w:66,h:10},
+    {n:5,c:"warn",x:54,y:142,w:48,h:12}
+  ],
+  lab:[
+    {n:1,c:"danger",x:130,y:42,w:48,h:12},
+    {n:2,c:"danger",x:130,y:58,w:84,h:8},
+    {n:3,c:"danger",x:130,y:68,w:70,h:8},
+    {n:4,c:"danger",x:130,y:82,w:84,h:12},
+    {n:5,c:"warn",x:130,y:112,w:74,h:20},
+    {n:6,c:"warn",x:130,y:96,w:64,h:6},
+    {n:7,c:"danger",x:130,y:100,w:62,h:8}
+  ]
+};
+
+const DATA = {
+  passport: {
+    label:"Passport on a desk", short:"Open passport",
+    userText:"Hey, can you check if my passport is still valid for my Bali trip? Photo attached.",
+    caption:"IMG_4472.jpg · 3.5 MB",
+    aiReply:"Sure! Your passport expires 14 March 2027, so you're fine for Bali — Indonesia requires 6 months' validity. Have a great trip!",
+    summary:[{n:"8",l:"identifiers read from the frame"},{n:"1",l:"home address (GPS + document)"},{n:"1",l:"biometric — facial photo"}],
+    layers:[
+      {cls:"l1",tag:"Layer 1 · Pixels (OCR + vision)",title:"Everything legible in the frame is read — not just the passport",chips:[
+        {t:"Full legal name",c:"danger"},{t:"Passport number PA0000000",c:"danger"},{t:"Date of birth",c:"danger"},{t:"MRZ machine-readable zone",c:"danger"},{t:"Facial photo",c:"warn"},{t:"Signature",c:"warn"},{t:"Phone screen in shot: banking app open",c:"danger"},{t:"Sticky note: 'Wifi pw: ...'",c:"danger"}
+      ],note:"The passport plus everything around it: MRZ lines alone are enough to open the chip on an ePassport and are a complete identity-theft kit."},
+      {cls:"l2",tag:"Layer 2 · Metadata (EXIF)",title:"Data your phone quietly attached to the file",chips:[
+        {t:"GPS: -27.56, 151.95 (home?)",c:"danger"},{t:"Timestamp: 06:42 local",c:"warn"},{t:"Device: iPhone 15 Pro",c:""},{t:"Original filename & camera settings",c:""}
+      ],note:"Camera uploads usually carry GPS coordinates. That pin plus a passport equals a name, a face, and a home address in one file."},
+      {cls:"l3",tag:"Layer 3 · Inference",title:"What a model can reasonably work out",chips:[
+        {t:"Travelling to Bali (you said so)",c:"warn"},{t:"House likely empty on travel dates",c:"danger"},{t:"Banking provider identified",c:"warn"},{t:"Answers to common ID-check questions",c:"danger"}
+      ],note:"Nothing here required hacking. It's the photo, the metadata, and one sentence of context, combined."},
+      {cls:"l4",tag:"Layer 4 · Persistence",title:"Where it can live now",chips:[
+        {t:"Provider servers (retention policy applies)",c:"warn"},{t:"Possible human review queue",c:"warn"},{t:"Possible training data (settings-dependent)",c:"danger"},{t:"Breach / subpoena exposure",c:"danger"}
+      ],note:"A one-second convenience became a permanent record you can't audit or reliably delete."}
+    ]
+  },
+  selfie: {
+    label:"Selfie at home", short:"Selfie at home",
+    userText:"Rate my new home office setup 😄",
+    caption:"IMG_5109.jpg · 2.8 MB",
+    aiReply:"Nice setup! Great natural light and a clean desk. Maybe raise the monitor a touch for posture. 8/10!",
+    summary:[{n:"5",l:"identifiers read from the frame"},{n:"1",l:"home address (GPS + envelope)"},{n:"1",l:"biometric — face"}],
+    layers:[
+      {cls:"l1",tag:"Layer 1 · Pixels (OCR + vision)",title:"The background talks",chips:[
+        {t:"Face (biometric-quality)",c:"warn"},{t:"Monitor: work email visible, client names",c:"danger"},{t:"Framed certificate: full name + institution",c:"warn"},{t:"Envelope on desk: home address readable",c:"danger"},{t:"Window view: street & landmark visible",c:"warn"}
+      ],note:"You framed the desk. The model reads the whole room — screens, paperwork, and what's out the window."},
+      {cls:"l2",tag:"Layer 2 · Metadata (EXIF)",title:"The file's hidden payload",chips:[
+        {t:"GPS coordinates: exact house",c:"danger"},{t:"Timestamp: weekday, 9:15am",c:""},{t:"Device model & lens data",c:""}
+      ],note:"Combined with the window view, the location can be confirmed two independent ways."},
+      {cls:"l3",tag:"Layer 3 · Inference",title:"A profile assembles itself",chips:[
+        {t:"Employer + clients identified",c:"warn"},{t:"Works from home on weekdays",c:"warn"},{t:"Income bracket (gear, suburb)",c:""},{t:"Daily routine window",c:"danger"}
+      ],note:"None of this was in your question. All of it was in your photo."},
+      {cls:"l4",tag:"Layer 4 · Persistence",title:"Where it can live now",chips:[
+        {t:"Provider retention",c:"warn"},{t:"Possible model training",c:"danger"},{t:"Face now paired with name + address in one record",c:"danger"}
+      ],note:"A biometric identifier tied to a home address is exactly the pairing privacy law tries hardest to prevent."}
+    ]
+  },
+  medical: {
+    label:"Photo of a medical letter", short:"Medical letter",
+    userText:"Can you explain what this letter from my specialist means in plain English?",
+    caption:"IMG_5522.jpg · 1.9 MB",
+    aiReply:"Of course. In plain terms, the letter says your results were reviewed and your specialist recommends a follow-up scan in three months. Nothing urgent — it's precautionary monitoring.",
+    summary:[{n:"6",l:"identifiers read from the frame"},{n:"1",l:"full health record digitised"},{n:"1",l:"Medicare / patient ID"}],
+    layers:[
+      {cls:"l1",tag:"Layer 1 · Pixels (OCR + vision)",title:"A complete health record, digitised in one shot",chips:[
+        {t:"Full name + DOB",c:"danger"},{t:"Medicare / patient ID number",c:"danger"},{t:"Diagnosis & clinical history",c:"danger"},{t:"Specialist name & clinic address",c:"warn"},{t:"Referring GP details",c:"warn"}
+      ],note:"Health information is the highest-sensitivity category under most privacy law — and it just went to a consumer chat tool in full."},
+      {cls:"l2",tag:"Layer 2 · Metadata (EXIF)",title:"Context attached automatically",chips:[
+        {t:"GPS: taken at home",c:"warn"},{t:"Timestamp",c:""},{t:"Device fingerprint",c:""}
+      ],note:"Now the record has a location and a time attached to the patient's name."},
+      {cls:"l3",tag:"Layer 3 · Inference",title:"What can be built from it",chips:[
+        {t:"Insurability-relevant condition",c:"danger"},{t:"Treatment timeline & prognosis signals",c:"warn"},{t:"Care network mapped (GP, specialist, clinic)",c:"warn"}
+      ],note:"Health data leaks don't just embarrass — they can affect insurance, employment and relationships for decades."},
+      {cls:"l4",tag:"Layer 4 · Persistence",title:"Where it can live now",chips:[
+        {t:"Outside any health-records protection regime",c:"danger"},{t:"Provider retention & review",c:"warn"},{t:"Possible training data",c:"danger"},{t:"Unverifiable deletion",c:"warn"}
+      ],note:"Hospitals are legally bound in how they store this. A consumer chatbot isn't your hospital. The safe version: retype the confusing sentence, no names, no numbers."}
+    ]
+  },
+  lab: {
+    label:"Laboratory work order", short:"Pathology work order",
+    userText:"Can you double-check this pathology work order is filled in correctly before I lodge it?",
+    caption:"IMG_8821.jpg · 4.1 MB",
+    aiReply:"Looks complete — patient details, requesting provider and the test panel are all filled in, and the collection date is today. You're good to lodge it.",
+    summary:[{n:"7",l:"identifiers read from the frame"},{n:"1",l:"health condition inferable"},{n:"1",l:"provider / Medicare number"}],
+    layers:[
+      {cls:"l1",tag:"Layer 1 · Pixels (OCR + vision)",title:"A pathology form is a dense block of regulated data",chips:[
+        {t:"Patient full name + DOB",c:"danger"},{t:"Medicare / patient ID",c:"danger"},{t:"Requesting provider + provider number",c:"danger"},{t:"Test panel requested",c:"danger"},{t:"Specimen barcode",c:"warn"},{t:"Clinic name & address",c:"warn"},{t:"Clinical notes / reason",c:"danger"}
+      ],note:"The barcode and provider number aren't just text — they're machine keys that link straight into pathology and billing systems."},
+      {cls:"l2",tag:"Layer 2 · Metadata (EXIF)",title:"Where and when it was captured",chips:[
+        {t:"GPS: clinic or collection room",c:"warn"},{t:"Timestamp: collection time",c:""},{t:"Device fingerprint",c:""}
+      ],note:"For a workplace document this can also expose which site you work at and your shift pattern."},
+      {cls:"l3",tag:"Layer 3 · Inference",title:"The test panel gives away the diagnosis",chips:[
+        {t:"Suspected condition (from tests ordered)",c:"danger"},{t:"Patient's care pathway",c:"warn"},{t:"Employer / practice identified",c:"warn"}
+      ],note:"You don't need the result. The specific tests a doctor orders already imply what they're screening for."},
+      {cls:"l4",tag:"Layer 4 · Persistence",title:"Handling someone else's health data",chips:[
+        {t:"Third party's data — not yours to disclose",c:"danger"},{t:"Outside APP-compliant systems",c:"danger"},{t:"Provider retention & training use",c:"warn"},{t:"Breach / audit exposure",c:"warn"}
+      ],note:"This isn't your photo of your record — it's a patient's. Uploading it can be a notifiable breach under the Australian Privacy Principles, with the RTO or practice on the hook."}
+    ]
+  }
+};
+
+const BAD_LIST = [
+  "The image may be retained on the provider's servers under their data policy — sometimes for years, sometimes indefinitely.",
+  "Depending on your settings and plan, it may be used to train future models or reviewed by human staff for quality and safety.",
+  "Extracted text (names, ID numbers, addresses) becomes searchable structured data, not just pixels.",
+  "It sits in one more database that can be breached, subpoenaed, or accessed by an insider.",
+  "Consumer chat tools generally don't meet the handling standards required for identity documents, health records or other regulated data (e.g. Australian Privacy Principles, PDPL, GDPR).",
+  "You often can't verify deletion. \"Deleted from your chat history\" and \"deleted from their systems\" are not the same thing."
+];
+const GOOD_LIST = [
+  "Ask the question without the photo. Describe the problem in text and strip the identifiers yourself.",
+  "If an image is genuinely needed, crop and redact first — faces, ID numbers, addresses, barcodes, QR codes, and anything in the background.",
+  "Strip metadata. Screenshots of photos drop EXIF/GPS data; direct camera uploads usually keep it.",
+  "Check the tool's data controls: turn off training on your data where the option exists, and prefer enterprise/API tiers with contractual data handling.",
+  "Never upload other people's identity documents, children's photos, or medical records to a consumer chatbot — you're making a disclosure decision on their behalf.",
+  "For regulated work (RTOs, health, finance), treat \"would I email this to a stranger?\" as the minimum bar before any upload."
+];
+
+const THEMES = {
+  neutral:{ logo:'<span class="logo-ph">Your logo</span>' },
+  abc:{ logo:'<span class="logo-word"><span class="mk">A</span>BC <small>Training</small></span>' },
+  slate:{ logo:'<span class="logo-word"><span class="mk">◆</span>Your Brand</span>' }
+};
+
+const METER_STEPS = [35, 60, 85, 100];
+
+/* ---------- state ---------- */
+const S = { step:"idle", current:null, revealed:-1 };
+let timers = [];
+let meterVal = 0;
+let lastThreadKey = null;
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+/* ---------- elements ---------- */
+const threadInner = document.getElementById("threadInner");
+const composerEl  = document.getElementById("composer");
+const xrayMount   = document.getElementById("xrayMount");
+const logoSlot    = document.getElementById("logoSlot");
+
+/* ---------- helpers ---------- */
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const brandColor = () => getComputedStyle(document.body).getPropertyValue("--brand").trim() || "#0f766e";
+
+function tween(from, to, dur, onStep, onDone){
+  if (REDUCED()) { onStep(to); onDone && onDone(); return; }
+  const t0 = performance.now();
+  (function frame(now){
+    const p = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    onStep(from + (to - from) * eased);
+    if (p < 1) requestAnimationFrame(frame); else onDone && onDone();
+  })(performance.now());
+}
+
+function transition(next){ Object.assign(S, next); render(); }
+
+/* ---------- actions ---------- */
+function reset(){
+  clearTimers();
+  meterVal = 0;
+  document.body.classList.remove("revealed");
+  transition({ step:"idle", current:null, revealed:-1 });
+}
+function openPicker(){ if (S.step === "typing" || S.step === "revealing") return; transition({ step:"picking" }); }
+function closePicker(){ transition({ step:"idle", current:null }); }
+function choose(key){ transition({ step:"attached", current:key }); }
+
+function send(){
+  if (S.step !== "attached") return;
+  clearTimers();
+  transition({ step:"typing" });
+  timers.push(setTimeout(() => {
+    transition({ step:"replied" });
+    const c = document.querySelector(".callout");
+    if (c) c.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  }, 2100));
+}
+
+function reveal(){
+  if (S.step !== "replied") return;
+  clearTimers();
+  const s = DATA[S.current];
+  const n = s.layers.length;
+  meterVal = 0;
+  transition({ step:"revealing", revealed:-1 });   // builds x-ray skeleton
+  for (let i = 0; i < n; i++){
+    timers.push(setTimeout(() => {
+      S.revealed = i;
+      render();                // draws exhibit boxes on first layer; x-ray is idempotent
+      activateLayer(i);        // lights the layer + tweens the meter
+      if (i === n - 1){
+        timers.push(setTimeout(() => {
+          document.body.classList.add("revealed");
+          transition({ step:"done" });
+          showSummary(s);
+        }, 1000));
+      }
+    }, 400 + i * 1500));
+  }
+  timers.push(setTimeout(() => {
+    const el = document.getElementById("xray");
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 24, behavior:"smooth" });
+  }, 140));
+}
+
+/* ---------- imperative x-ray updates (so animations aren't wiped by re-render) ---------- */
+function activateLayer(i){
+  const xray = document.getElementById("xray");
+  if (!xray) return;
+  const layerEls = xray.querySelectorAll(".layer");
+  if (layerEls[i]) layerEls[i].classList.add("on");
+  tweenMeter(METER_STEPS[i]);
+  updateTally();
+}
+function tweenMeter(target){
+  const pctEl  = document.getElementById("meterPct");
+  const fillEl = document.getElementById("meterFill");
+  const barEl  = document.getElementById("meterBar");
+  tween(meterVal, target, 900, v => {
+    meterVal = v;
+    const p = Math.round(v);
+    if (pctEl)  pctEl.textContent = p + "%";
+    if (fillEl) fillEl.style.width = v + "%";
+    if (barEl)  barEl.setAttribute("aria-valuenow", String(p));
+  });
+}
+function updateTally(){
+  const el = document.getElementById("tallyN");
+  if (!el || !S.current) return;
+  let count = 0;
+  DATA[S.current].layers.forEach((l, i) => { if (i <= S.revealed) count += l.chips.length; });
+  const target = count;
+  const from = Number(el.textContent) || 0;
+  tween(from, target, 700, v => { el.textContent = String(Math.round(v)); });
+}
+function showSummary(s){
+  const xray = document.getElementById("xray");
+  if (!xray || xray.querySelector(".summary")) return;
+  const stats = s.summary.map(x =>
+    `<div class="stat"><div class="n" data-to="${esc(x.n)}">0</div><div class="l">${esc(x.l)}</div></div>`).join("");
+  const div = document.createElement("div");
+  div.className = "summary";
+  div.innerHTML = `
+    <p class="k">Shareable summary · one-tap export</p>
+    <h3>This one photo exposed:</h3>
+    <div class="summary-grid">${stats}</div>
+    <div class="summary-actions">
+      <button class="dl-btn" type="button" data-act="download"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download share card</button>
+      <button class="ghost-btn" type="button" data-act="reset">↺ Try another photo</button>
+    </div>`;
+  xray.appendChild(div);
+  div.querySelectorAll(".stat .n").forEach(el => {
+    tween(0, Number(el.dataset.to), 900, v => { el.textContent = String(Math.round(v)); });
+  });
+}
+
+/* ---------- render (thread + composer; x-ray skeleton) ---------- */
+function threadKeyFor(){
+  if (S.revealed >= 0) return "boxed|" + S.current;      // stable through reveal → done
+  return S.step + "|" + (S.current || "");
+}
+
+function exhibitBoxes(){
+  if (S.revealed < 0 || !S.current) return "";
+  const spots = HOTSPOTS[S.current] || [];
+  return spots.map((h, idx) => {
+    const style = `left:${(h.x/236*100).toFixed(2)}%;top:${(h.y/177*100).toFixed(2)}%;width:${(h.w/236*100).toFixed(2)}%;height:${(h.h/177*100).toFixed(2)}%;animation-delay:${idx*110}ms`;
+    return `<div class="exbox ${h.c}" style="${style}"><span class="bn">${h.n}</span></div>`;
+  }).join("");
+}
+
+function render(){
+  const st = S.step;
+  const s = S.current ? DATA[S.current] : null;
+  const posted   = ["typing","replied","revealing","done"].includes(st);
+  const replied  = ["replied","revealing","done"].includes(st);
+  const attached = st === "attached";
+
+  /* thread — rebuilt only when its signature changes (protects box/reveal animations) */
+  const key = threadKeyFor();
+  if (key !== lastThreadKey){
+    lastThreadKey = key;
+    threadInner.className = "thread-inner" + (posted ? "" : " center");
+    let html = "";
+
+    if (!posted){
+      const sub = attached ? "Photo attached. Press send to ask the assistant."
+        : (st === "picking" ? "Pick one of the sample photos below."
+        : "Attach a sample photo with the ＋ button, then press send.");
+      html += `
+        <div class="greeting">
+          <div class="greeting-badge"><svg width="32" height="32" viewBox="0 0 24 24"><path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" fill="#fff"/></svg></div>
+          <h2>How can I help today?</h2>
+          <p>${esc(sub)}</p>
+        </div>`;
+      if (st === "picking"){
+        const cards = Object.keys(DATA).map(k => `
+          <button class="op-card" type="button" data-pick="${k}">
+            <div class="thumb">${SVGS[k]}</div>
+            <div class="c-label">${esc(DATA[k].short)}</div>
+            <div class="c-cap">${esc(DATA[k].caption)}</div>
+          </button>`).join("");
+        html += `
+          <div class="picker">
+            <div class="picker-head">
+              <p>Choose a sample photo — staged, not uploaded</p>
+              <button class="icon-btn" type="button" data-act="closePicker" aria-label="Close chooser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="picker-grid">${cards}</div>
+          </div>`;
+      }
+    }
+
+    if (posted && s){
+      const scanning = st === "typing";
+      const filename = s.caption.split(" · ")[0];
+      html += `
+        <div class="msg-user">
+          <div class="bubble">
+            ${esc(s.userText)}
+            <div class="photo">
+              <div class="frame">
+                ${SVGS[S.current]}
+                <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+                <span class="exhibit-tag">Exhibit ${EXHIBIT[S.current]} · ${esc(filename)}</span>
+                ${scanning ? '<div class="scanline"></div><span class="scan-badge">Scanning…</span>' : ""}
+                ${exhibitBoxes()}
+              </div>
+              <div class="cap"><span>📎 ${esc(s.caption)}</span><span>${scanning ? "reading…" : "uploaded"}</span></div>
+            </div>
+          </div>
+        </div>`;
+
+      if (st === "typing"){
+        html += `
+          <div class="msg-ai">
+            <span class="ai-badge">${SPARKLE}</span>
+            <div class="typing"><span></span><span></span><span></span></div>
+          </div>`;
+      }
+      if (replied){
+        html += `
+          <div class="msg-ai">
+            <span class="ai-badge">${SPARKLE}</span>
+            <div class="ai-text">${esc(s.aiReply)}</div>
+          </div>`;
+      }
+      if (st === "replied"){
+        html += `
+          <div class="callout">
+            <p class="k">You only saw the reply</p>
+            <p>That took two seconds and felt harmless. In the same two seconds, the model read the entire frame. Reveal what your one photo actually handed over.</p>
+            <button class="reveal-btn" type="button" data-act="reveal">Reveal the extraction log ↓</button>
+          </div>`;
+      }
+    }
+    threadInner.innerHTML = html;
+  }
+
+  /* composer — cheap, always rebuilt */
+  const sendReady = attached;
+  const pulse = st === "idle" ? " pulse" : "";
+  let comp = "";
+  if (attached && s){
+    comp += `
+      <div class="attach-chip">
+        <span class="cthumb">${SVGS[S.current]}</span>
+        <span class="cname">${esc(s.caption)}</span>
+        <button class="icon-btn" type="button" data-act="closePicker" aria-label="Remove attachment"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>`;
+  }
+  comp += `
+    <div class="composer-row">
+      <button class="attach-btn${pulse}" type="button" data-act="openPicker" aria-label="Attach a sample photo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="composer-text${attached ? " filled" : ""}">${attached && s ? esc(s.userText) : "Message Assistant…"}</div>
+      <button class="send-btn" type="button" data-act="send" ${sendReady ? "" : "disabled"} aria-label="Send message"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+    </div>`;
+  composerEl.innerHTML = comp;
+
+  syncXray(s);
+}
+
+/* x-ray skeleton is built once when revealing starts, then updated imperatively. */
+function syncXray(s){
+  const on = ["revealing","done"].includes(S.step);
+  if (!on || !s){ xrayMount.innerHTML = ""; return; }
+  if (document.getElementById("xray")) return;   // already built — leave it for imperative updates
+
+  const layers = s.layers.map((l) => {
+    const chips = l.chips.map((c, ci) => {
+      const spot = l.cls === "l1" ? (HOTSPOTS[S.current] || [])[ci] : null;
+      const pin = spot ? `<span class="chip-pin">${spot.n}</span>` : "";
+      return `<span class="chip ${c.c}">${pin}${esc(c.t)}</span>`;
+    }).join("");
+    return `
+      <div class="layer">
+        <span class="layer-tag ${l.cls}">${esc(l.tag)}</span>
+        <h3>${esc(l.title)}</h3>
+        <div class="layer-chips">${chips}</div>
+        <p class="note">${esc(l.note)}</p>
+      </div>`;
+  }).join("");
+
+  xrayMount.innerHTML = `
+    <div class="xray" id="xray">
+      <div class="xray-head">
+        <p class="k">What the chat never showed you</p>
+        <h2>The helpful answer took two seconds. So did all of this.</h2>
+        <p>Everything below happened in the same two seconds — and the friendly reply is the only part you saw. The numbered tags match the boxes drawn on your photo.</p>
+      </div>
+      <div class="meter-block">
+        <div class="meter-label"><span>Privacy exposure</span><span class="pct" id="meterPct">0%</span></div>
+        <div class="meter" id="meterBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Privacy exposure">
+          <div class="meter-fill" id="meterFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span class="d"><i></i>Danger</span>
+        <span class="w"><i></i>Warn</span>
+        <span class="n"><i></i>Context</span>
+        <span class="tally">Identifiers read: <b id="tallyN">0</b></span>
+      </div>
+      <div class="layers">${layers}</div>
+    </div>`;
+}
+
+/* ---------- share card (canvas → PNG) ---------- */
+function downloadCard(){
+  if (!S.current) return;
+  const s = DATA[S.current];
+  const W = 1200, H = 630;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  const brand = brandColor();
+
+  g.fillStyle = "#1c1b19"; g.fillRect(0, 0, W, H);
+  g.fillStyle = brand; g.fillRect(0, 0, W, 8);
+  g.fillStyle = brand; g.fillRect(80, 150, 120, 6);
+
+  g.textBaseline = "alphabetic";
+  g.fillStyle = "#e8a29a";
+  g.font = "600 22px ui-monospace, 'SF Mono', Menlo, monospace";
+  g.fillText("ONE PHOTO · PRIVACY EXPOSURE", 80, 112);
+
+  const themeName = document.body.dataset.theme === "abc" ? "ABC Training"
+    : (document.body.dataset.theme === "slate" ? "Your Brand" : "");
+  if (themeName){
+    g.textAlign = "right";
+    g.fillStyle = "#c8c3b7";
+    g.font = "800 24px Inter, system-ui, sans-serif";
+    g.fillText(themeName, W - 80, 108);
+    g.textAlign = "left";
+  }
+
+  g.fillStyle = "#fbf9f3";
+  g.font = "800 62px Inter, system-ui, sans-serif";
+  g.fillText("This one photo exposed:", 80, 224);
+
+  g.fillStyle = "#b8b3a6";
+  g.font = "400 24px Inter, system-ui, sans-serif";
+  g.fillText("Scenario: " + s.label, 80, 262);
+
+  const cols = [80, 470, 860];
+  s.summary.forEach((st, i) => {
+    const x = cols[i];
+    g.fillStyle = "#e8564d";
+    g.font = "800 118px Inter, system-ui, sans-serif";
+    g.fillText(st.n, x, 432);
+    g.fillStyle = "#c8c3b7";
+    g.font = "400 23px Inter, system-ui, sans-serif";
+    wrapText(g, st.l, x, 474, 310, 30);
+  });
+
+  g.fillStyle = "#6b675c";
+  g.font = "400 19px ui-monospace, 'SF Mono', Menlo, monospace";
+  g.fillText("Staged simulation for training — no image was uploaded. All extracted data is fictional.", 80, 588);
+
+  const a = document.createElement("a");
+  a.download = "one-photo-exposed-" + S.current + ".png";
+  a.href = cv.toDataURL("image/png");
+  a.click();
+}
+function wrapText(ctx, text, x, y, maxW, lh){
+  const words = text.split(" ");
+  let line = "", yy = y;
+  for (const w of words){
+    const test = line ? line + " " + w : w;
+    if (ctx.measureText(test).width > maxW && line){ ctx.fillText(line, x, yy); line = w; yy += lh; }
+    else line = test;
+  }
+  ctx.fillText(line, x, yy);
+}
+
+/* ---------- theming ---------- */
+function setTheme(k){
+  if (!THEMES[k]) k = "neutral";
+  document.body.dataset.theme = k;
+  logoSlot.innerHTML = THEMES[k].logo;
+  document.querySelectorAll("[data-theme-set]").forEach(b =>
+    b.classList.toggle("active", b.dataset.themeSet === k));
+}
+
+/* ---------- static lists ---------- */
+document.getElementById("badList").innerHTML  = BAD_LIST.map(t => `<li>${esc(t)}</li>`).join("");
+document.getElementById("goodList").innerHTML = GOOD_LIST.map(t => `<li>${esc(t)}</li>`).join("");
+
+/* ---------- event delegation ---------- */
+const ACTIONS = { reset, openPicker, closePicker, send, reveal, download: downloadCard };
+document.addEventListener("click", (e) => {
+  const th = e.target.closest("[data-theme-set]");
+  if (th){ setTheme(th.dataset.themeSet); return; }
+  const pick = e.target.closest("[data-pick]");
+  if (pick){ choose(pick.dataset.pick); return; }
+  const act = e.target.closest("[data-act]");
+  if (act && ACTIONS[act.dataset.act]) ACTIONS[act.dataset.act]();
+});
+
+/* ---------- go ---------- */
+setTheme("neutral");
+render();
+</script>
+</body>
+</html>
