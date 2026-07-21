@@ -198,6 +198,39 @@
   .f3-title{ font-size:54px; font-weight:800; line-height:1.18; color:#fff; letter-spacing:-0.01em; max-width:960px; text-wrap:balance; }
   .f3-sub{ margin:32px 0 0; font-size:23px; font-weight:400; line-height:1.55; color:#c7c4dc; max-width:720px; text-wrap:pretty; }
 
+  /* ---------------- Frame 2b — How it adds up ---------------- */
+  #f2b{ padding:48px 64px; }
+  .f2b-head{ margin-bottom:22px; }
+  .f2b-title{ font-size:34px; font-weight:800; color:var(--navy); letter-spacing:-0.01em; }
+  .f2b-sub{ margin:12px 0 0; font-size:17px; font-weight:400; color:var(--grey); line-height:1.5; max-width:860px; }
+  .explain-grid{
+    flex:1; display:grid; grid-template-columns:1fr 1fr; gap:20px; min-height:0;
+  }
+  .ecard{
+    background:#fff; border:1px solid var(--card-border); border-radius:12px;
+    box-shadow:0 4px 14px rgba(25,18,70,0.05); padding:20px 22px;
+    display:flex; flex-direction:column; gap:11px;
+    opacity:0; transform:translateY(10px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .ecard.in{ opacity:1; transform:none; }
+  .ecard-head{ display:flex; align-items:flex-start; gap:12px; }
+  .ecard-mark{
+    width:24px; height:24px; border-radius:6px; background:#eaf2ea;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;
+  }
+  .ecard-title{ font-size:17px; font-weight:700; color:var(--navy); line-height:1.28; }
+  .ecard-why{ font-size:14px; line-height:1.5; color:#4a4a55; text-wrap:pretty; }
+  .ecard-signals{ margin-top:auto; display:flex; flex-wrap:wrap; gap:7px; }
+  .chip{
+    font-size:11.5px; font-weight:600; color:var(--green);
+    background:#eaf2ea; border-radius:999px; padding:5px 11px; white-space:nowrap;
+  }
+  .f2b-note{
+    margin-top:20px; font-size:14.5px; line-height:1.5; color:#4a4a55; text-align:center;
+  }
+  .f2b-note b{ color:var(--navy); font-weight:700; }
+
   /* ---------------- Nav (outside the design canvas) ---------------- */
   .nav{
     position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
@@ -288,6 +321,16 @@
           </div>
         </section>
 
+        <!-- ============ FRAME 2b — How it adds up ============ -->
+        <section class="frame frame--light" id="f2b" aria-label="How the posts combine">
+          <div class="f2b-head">
+            <h1 class="f2b-title">How six safe posts add up.</h1>
+            <p class="f2b-sub">No single post is sensitive. Combined — and cross-referenced with public records and timing — they point to a specific client, place, lab and timeline that nobody disclosed.</p>
+          </div>
+          <div class="explain-grid" id="explainGrid"></div>
+          <div class="f2b-note" id="f2bNote"></div>
+        </section>
+
         <!-- ============ FRAME 3 — Takeaway ============ -->
         <section class="frame frame--navy" id="f3" aria-label="Takeaway">
           <div class="rule"></div>
@@ -340,6 +383,25 @@
     'Programme is scaling — and results are flowing now, pre-announcement'
   ];
 
+  // What the combined information actually provides: each confidential
+  // conclusion, why it follows, and which of the six posts feed it.
+  var EXPLAIN = [
+    { title:'A client — a junior explorer running a gold programme',
+      why:'The conference abstract names a <em>client’s</em> geologist, so there is an external partner; the job ad specifies <em>gold-ore</em> assays; and a nearby tenement record ties a specific explorer to the ground. None of that is confidential alone — together it names the client’s type of business.',
+      signals:['Client geologist abstract','Gold-ore ICP-MS ad','Public tenement record'] },
+    { title:'A place — a specific tenement near Kalgoorlie',
+      why:'Staff and lab are in Kalgoorlie, a public tenement record pins the exact ground and its holder, and “on site until the 14th” confirms someone is working it right now. A general location becomes a map reference.',
+      signals:['New techs · Kalgoorlie','Public tenement record','On site until the 14th'] },
+    { title:'A supplier — the lab performing the assays',
+      why:'The posts come from the assay lab’s own people, the ICP-MS gold-ore role shows it runs exactly this method, and crates on the loading dock show real samples moving through it. The client’s assay provider is now identifiable.',
+      signals:['Gold-ore ICP-MS ad','Crates on the dock','New techs · Kalgoorlie'] },
+    { title:'A timeline — scaling, with results before any announcement',
+      why:'Four new techs and a new operator add capacity, crates on the dock mean samples are in the pipeline, and active field work implies assay results already exist — before the market has been told. That is the market-sensitive part.',
+      signals:['New techs · Kalgoorlie','Crates on the dock','On site until the 14th'] }
+  ];
+
+  var EXPLAIN_NOTE = 'Nobody disclosed a client, a grade, or a result. But <b>client + place + supplier + timing</b> is enough for a competitor or a trader to act on information that was never meant to be public.';
+
   var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#336633" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>';
   var CHECK_WHITE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>';
   var CHECK_GREEN_ONNAVY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5fbf6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>';
@@ -350,13 +412,15 @@
   var state = { current:0, answers:[], phase:'judgement' };
 
   var el = {
-    f1:document.getElementById('f1'), f2:document.getElementById('f2'), f3:document.getElementById('f3'),
+    f1:document.getElementById('f1'), f2:document.getElementById('f2'),
+    f2b:document.getElementById('f2b'), f3:document.getElementById('f3'),
     pill:document.getElementById('pill'),
     postName:document.getElementById('postName'), postMeta:document.getElementById('postMeta'), postBody:document.getElementById('postBody'),
     dots:document.getElementById('dots'),
     btnSafe:document.getElementById('btnSafe'), btnNope:document.getElementById('btnNope'),
     miniList:document.getElementById('miniList'), connectors:document.getElementById('connectors'),
     aiCard:document.getElementById('aiCard'), aiLines:document.getElementById('aiLines'), aiFoot:document.getElementById('aiFoot'),
+    explainGrid:document.getElementById('explainGrid'), f2bNote:document.getElementById('f2bNote'),
     navContinue:document.getElementById('navContinue'), navRestart:document.getElementById('navRestart')
   };
 
@@ -418,7 +482,43 @@
   function showFrame(name){
     el.f1.classList.toggle('is-active', name === 'f1');
     el.f2.classList.toggle('is-active', name === 'f2');
+    el.f2b.classList.toggle('is-active', name === 'f2b');
     el.f3.classList.toggle('is-active', name === 'f3');
+  }
+
+  // ---- Frame 2b build + reveal ----------------------------------------
+  function buildFrame2b(){
+    var h = '';
+    for (var i = 0; i < EXPLAIN.length; i++){
+      var e = EXPLAIN[i];
+      var chips = '';
+      for (var s = 0; s < e.signals.length; s++){
+        chips += '<span class="chip">' + e.signals[s] + '</span>';
+      }
+      h += '<div class="ecard">' +
+             '<div class="ecard-head"><div class="ecard-mark">' + CHECK + '</div>' +
+               '<div class="ecard-title">' + e.title + '</div></div>' +
+             '<div class="ecard-why">' + e.why + '</div>' +
+             '<div class="ecard-signals">' + chips + '</div>' +
+           '</div>';
+    }
+    el.explainGrid.innerHTML = h;
+    el.f2bNote.innerHTML = EXPLAIN_NOTE;
+  }
+
+  function toExplain(){
+    state.phase = 'explain';
+    buildFrame2b();
+    showFrame('f2b');
+    el.navContinue.hidden = false;
+    el.navRestart.hidden = false;
+
+    var cards = el.explainGrid.querySelectorAll('.ecard');
+    if (reduceMotion){
+      cards.forEach(function(c){ c.classList.add('in'); });
+      return;
+    }
+    cards.forEach(function(c, i){ setTimeout(function(){ c.classList.add('in'); }, 130 * i); });
   }
 
   function toReveal(){
@@ -457,13 +557,18 @@
     el.navRestart.hidden = false;
   }
 
+  function advance(){
+    if (state.phase === 'reveal'){ toExplain(); }
+    else if (state.phase === 'explain'){ toTakeaway(); }
+  }
+
   function restart(){
     state.current = 0; state.answers = []; state.phase = 'judgement';
     // reset frame-2 animation classes
     el.connectors.classList.remove('draw');
     el.aiCard.classList.remove('in');
     el.aiFoot.classList.remove('in');
-    el.miniList.innerHTML = ''; el.aiLines.innerHTML = '';
+    el.miniList.innerHTML = ''; el.aiLines.innerHTML = ''; el.explainGrid.innerHTML = '';
     el.navContinue.hidden = true; el.navRestart.hidden = true;
     renderPost(); renderDots(); showFrame('f1');
   }
@@ -471,12 +576,12 @@
   // ---- Events ----------------------------------------------------------
   el.btnSafe.addEventListener('click', function(){ answer('safe'); });
   el.btnNope.addEventListener('click', function(){ answer('not-safe'); });
-  el.navContinue.addEventListener('click', toTakeaway);
+  el.navContinue.addEventListener('click', advance);
   el.navRestart.addEventListener('click', restart);
 
   document.addEventListener('keydown', function(e){
-    if (state.phase === 'reveal' && (e.key === 'Enter' || e.key === ' ')){
-      e.preventDefault(); toTakeaway();
+    if ((state.phase === 'reveal' || state.phase === 'explain') && (e.key === 'Enter' || e.key === ' ')){
+      e.preventDefault(); advance();
     }
   });
 
