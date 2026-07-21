@@ -20,7 +20,7 @@
     --frame-border:#ececf1;
   }
   *{ box-sizing:border-box; }
-  html,body{ height:100%; }
+  html,body{ height:100%; width:100%; }
   body{
     margin:0;
     font-family:'Raleway', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -28,26 +28,26 @@
     color:var(--body);
     -webkit-font-smoothing:antialiased;
     text-rendering:optimizeLegibility;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    min-height:100vh;
     overflow:hidden;
   }
 
-  /* Scale-to-fit wrapper: keeps the fixed 1280x720 canvas pixel-accurate
-     while letting it shrink to fit any viewport. */
+  /* Scale-to-fit: the fixed 1280x720 canvas is scaled to fill whatever
+     space it is given — a full browser window OR a Rise 360 / LMS iframe —
+     while keeping its exact 16:9 proportions and the nav row visible. */
   .viewport{
-    width:100vw; height:100vh;
-    display:flex; align-items:center; justify-content:center;
+    width:100%; height:100%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:10px; padding:8px;
     overflow:hidden;
   }
-  .scaler{ transform-origin:center center; }
+  /* fitbox takes the *scaled* size so the nav lays out directly beneath it. */
+  .fitbox{ position:relative; flex:0 0 auto; }
 
   .stage{
-    position:relative;
+    position:absolute; top:0; left:0;
     width:1280px; height:720px;
+    transform-origin:top left;
     display:flex; flex-direction:column;
   }
 
@@ -233,8 +233,9 @@
 
   /* ---------------- Nav (outside the design canvas) ---------------- */
   .nav{
-    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
-    display:flex; gap:14px; align-items:center; z-index:10;
+    flex:0 0 auto;
+    display:flex; gap:14px; align-items:center; justify-content:center; z-index:10;
+    min-height:44px;
   }
   .nav-btn{
     font-family:inherit; font-size:14px; font-weight:600;
@@ -253,8 +254,8 @@
 </head>
 <body>
   <div class="viewport">
-    <div class="scaler" id="scaler">
-      <div class="stage">
+    <div class="fitbox" id="fitbox">
+      <div class="stage" id="stage">
 
         <!-- ============ FRAME 1 — Judgement ============ -->
         <section class="frame frame--light is-active" id="f1" aria-label="Judgement phase">
@@ -340,11 +341,11 @@
 
       </div>
     </div>
-  </div>
 
-  <div class="nav">
-    <button class="nav-btn" id="navContinue" hidden>Continue →</button>
-    <button class="nav-btn" id="navRestart" hidden>Restart</button>
+    <div class="nav">
+      <button class="nav-btn" id="navContinue" hidden>Continue →</button>
+      <button class="nav-btn" id="navRestart" hidden>Restart</button>
+    </div>
   </div>
 
 <script>
@@ -585,15 +586,27 @@
     }
   });
 
-  // ---- Scale-to-fit (keeps the 1280x720 canvas pixel-accurate) ---------
-  var scaler = document.getElementById('scaler');
+  // ---- Scale-to-fit ----------------------------------------------------
+  // Scale the 1280x720 canvas to fill the available box (browser window OR
+  // an embedded iframe such as Rise 360), keeping 16:9 and leaving room for
+  // the nav row. Uses the document box so it is correct inside an iframe.
+  var fitbox = document.getElementById('fitbox');
+  var stage = document.getElementById('stage');
+  var NAV_RESERVE = 54;   // vertical space kept for the nav row
   function fit(){
-    var pad = 48;
-    var s = Math.min((window.innerWidth - pad) / 1280, (window.innerHeight - pad) / 720);
-    s = Math.min(s, 1);
-    scaler.style.transform = 'scale(' + s + ')';
+    var doc = document.documentElement;
+    var vw = doc.clientWidth  || window.innerWidth;
+    var vh = doc.clientHeight || window.innerHeight;
+    var availW = Math.max(0, vw - 16);
+    var availH = Math.max(0, vh - NAV_RESERVE - 16);
+    var s = Math.min(availW / 1280, availH / 720);
+    if (!isFinite(s) || s <= 0) s = 1;
+    stage.style.transform = 'scale(' + s + ')';
+    fitbox.style.width  = (1280 * s) + 'px';
+    fitbox.style.height = (720 * s) + 'px';
   }
   window.addEventListener('resize', fit);
+  if (window.ResizeObserver){ new ResizeObserver(fit).observe(document.documentElement); }
 
   // ---- Init ------------------------------------------------------------
   renderPost(); renderDots(); fit();
