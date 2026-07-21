@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Six Harmless Things — Aggregation Risk Activity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#191246;
+    --green:#336633;
+    --green-on-navy:#5fbf6b;
+    --green-emph:#7fd08a;
+    --grey:#666666;
+    --body:#2b2b33;
+    --backdrop:#f4f5f8;
+    --card-border:#e6e6ee;
+    --frame-border:#ececf1;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:'Raleway', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background:var(--backdrop);
+    color:var(--body);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    overflow:hidden;
+  }
+
+  /* Scale-to-fit wrapper: keeps the fixed 1280x720 canvas pixel-accurate
+     while letting it shrink to fit any viewport. */
+  .viewport{
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .scaler{ transform-origin:center center; }
+
+  .stage{
+    position:relative;
+    width:1280px; height:720px;
+    display:flex; flex-direction:column;
+  }
+
+  /* A frame = one 1280x720 canvas */
+  .frame{
+    position:absolute; inset:0;
+    width:1280px; height:720px;
+    overflow:hidden;
+    box-sizing:border-box;
+    display:none;
+    flex-direction:column;
+  }
+  .frame.is-active{ display:flex; }
+
+  .frame--light{
+    background:#ffffff;
+    box-shadow:0 20px 60px rgba(25,18,70,0.10);
+    border:1px solid var(--frame-border);
+  }
+  .frame--navy{
+    background:var(--navy);
+    box-shadow:0 20px 60px rgba(25,18,70,0.20);
+  }
+
+  h1{ margin:0; }
+
+  /* ---------------- Frame 1 — Judgement ---------------- */
+  #f1{ padding:64px 80px; }
+  .f1-head{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .f1-title{ font-size:44px; font-weight:800; color:var(--navy); letter-spacing:-0.01em; }
+  .f1-sub{ margin:14px 0 0; font-size:20px; font-weight:400; color:var(--grey); }
+  .pill{
+    flex-shrink:0; margin-top:8px; padding:10px 20px;
+    border:1px solid #e3e3ea; border-radius:999px;
+    font-size:15px; font-weight:600; color:var(--navy);
+    white-space:nowrap;
+  }
+
+  .post{
+    margin:44px auto 0; width:640px; background:#fff;
+    border:1px solid var(--card-border); border-radius:14px;
+    box-shadow:0 10px 30px rgba(25,18,70,0.07); padding:28px 30px;
+  }
+  .post-top{ display:flex; align-items:center; gap:14px; }
+  .avatar{
+    width:52px; height:52px; border-radius:50%; background:#eef0f5;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .post-id{ line-height:1.3; }
+  .post-name{ font-size:17px; font-weight:700; color:var(--navy); }
+  .post-meta{ font-size:13px; color:#8a8a94; }
+  .post-meta b{ font-weight:600; }
+  .post-body{ margin:20px 0 0; font-size:19px; line-height:1.55; color:var(--body); text-wrap:pretty; }
+  .post-actions{
+    margin-top:22px; padding-top:16px; border-top:1px solid #f0f0f5;
+    display:flex; gap:28px; font-size:14px; font-weight:600; color:#9a9aa5;
+  }
+
+  .choices{ margin-top:36px; display:flex; gap:20px; justify-content:center; }
+  .btn{
+    min-width:240px; padding:18px 28px; font-family:inherit; font-size:18px;
+    font-weight:700; background:#fff; border:2px solid; border-radius:12px;
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .btn--safe{ color:var(--green); border-color:var(--green); }
+  .btn--safe:hover,.btn--safe:focus-visible{ background:var(--green); color:#fff; outline:none; }
+  .btn--nope{ color:var(--navy); border-color:var(--navy); }
+  .btn--nope:hover,.btn--nope:focus-visible{ background:var(--navy); color:#fff; outline:none; }
+
+  .dots{ margin-top:auto; padding-top:28px; display:flex; gap:16px; justify-content:center; align-items:center; }
+  .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; border:2px solid;
+    transition:background .25s ease, border-color .25s ease, color .25s ease;
+  }
+  .dot--done{ border-color:var(--green); background:var(--green); color:#fff; }
+  .dot--current{ border-color:var(--navy); background:var(--navy); color:#fff; }
+  .dot--todo{ border-color:#dcdce4; background:#fff; color:#b4b4be; }
+
+  /* ---------------- Frame 2 — Reveal ---------------- */
+  #f2{ padding:56px 72px; }
+  .f2-title{ font-size:38px; font-weight:800; color:var(--navy); letter-spacing:-0.01em; margin-bottom:36px; }
+  .f2-body{ flex:1; display:flex; gap:0; min-height:0; }
+
+  .f2-left{
+    width:40%; display:flex; flex-direction:column; justify-content:center;
+    gap:12px; padding-right:8px; position:relative; z-index:2;
+  }
+  .mini{
+    display:flex; align-items:center; gap:12px; background:#fff;
+    border:1px solid var(--card-border); border-radius:10px;
+    box-shadow:0 4px 14px rgba(25,18,70,0.05); padding:12px 14px;
+    opacity:0; transform:translateY(8px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .mini.in{ opacity:1; transform:none; }
+  .mini-check{
+    width:24px; height:24px; border-radius:50%; background:#eaf2ea;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .mini-label{ font-size:14px; font-weight:600; color:var(--body); line-height:1.3; }
+
+  .connectors{ width:70px; position:relative; flex-shrink:0; }
+  .connectors svg{ position:absolute; inset:0; }
+  .connectors path{
+    stroke:#cdd6cd; stroke-width:1.5; fill:none;
+    stroke-dasharray:var(--len); stroke-dashoffset:var(--len);
+    transition:stroke-dashoffset .7s ease;
+  }
+  .connectors.draw path{ stroke-dashoffset:0; }
+
+  .f2-right{ flex:1; display:flex; align-items:stretch; }
+  .ai{
+    flex:1; background:var(--navy); border-radius:16px;
+    box-shadow:0 18px 44px rgba(25,18,70,0.28);
+    display:flex; flex-direction:column; overflow:hidden;
+    opacity:0; transform:translateX(10px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .ai.in{ opacity:1; transform:none; }
+  .ai-head{
+    padding:16px 26px; border-bottom:1px solid rgba(255,255,255,0.12);
+    display:flex; align-items:center; gap:12px;
+  }
+  .ai-dot{ width:9px; height:9px; border-radius:50%; background:var(--green-on-navy); box-shadow:0 0 0 4px rgba(95,191,107,0.18); }
+  .ai-status{ font-size:15px; font-weight:600; letter-spacing:.04em; color:#e7e6f0; }
+  .ai-tag{ margin-left:auto; font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8f8bb3; }
+  .ai-lines{ padding:26px 28px; display:flex; flex-direction:column; gap:16px; }
+  .infer{ display:flex; align-items:flex-start; gap:14px; opacity:0; transform:translateY(6px); transition:opacity .45s ease, transform .45s ease; }
+  .infer.in{ opacity:1; transform:none; }
+  .infer-mark{
+    width:20px; height:20px; border-radius:5px; background:rgba(95,191,107,0.16);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;
+  }
+  .infer-text{ font-size:16.5px; line-height:1.5; color:#eceaf5; text-wrap:pretty; }
+  .ai-foot{
+    margin-top:auto; padding:20px 28px; border-top:1px solid rgba(255,255,255,0.12);
+    background:rgba(95,191,107,0.07);
+    opacity:0; transition:opacity .5s ease;
+  }
+  .ai-foot.in{ opacity:1; }
+  .ai-foot-text{ font-size:18px; font-weight:700; color:var(--green-emph); line-height:1.4; }
+
+  /* ---------------- Frame 3 — Takeaway ---------------- */
+  #f3{ align-items:center; justify-content:center; padding:80px 120px; text-align:center; }
+  .rule{ width:56px; height:4px; border-radius:2px; background:var(--green-on-navy); margin-bottom:40px; }
+  .f3-title{ font-size:54px; font-weight:800; line-height:1.18; color:#fff; letter-spacing:-0.01em; max-width:960px; text-wrap:balance; }
+  .f3-sub{ margin:32px 0 0; font-size:23px; font-weight:400; line-height:1.55; color:#c7c4dc; max-width:720px; text-wrap:pretty; }
+
+  /* ---------------- Nav (outside the design canvas) ---------------- */
+  .nav{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px; align-items:center; z-index:10;
+  }
+  .nav-btn{
+    font-family:inherit; font-size:14px; font-weight:600;
+    color:var(--navy); background:#fff; border:1px solid #e3e3ea;
+    border-radius:999px; padding:10px 22px; cursor:pointer;
+    box-shadow:0 6px 18px rgba(25,18,70,0.08);
+    transition:background .15s ease, color .15s ease, opacity .2s ease;
+  }
+  .nav-btn:hover,.nav-btn:focus-visible{ background:var(--navy); color:#fff; outline:none; }
+  .nav-btn[hidden]{ display:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    .mini,.ai,.infer,.ai-foot,.connectors path{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="viewport">
+    <div class="scaler" id="scaler">
+      <div class="stage">
+
+        <!-- ============ FRAME 1 — Judgement ============ -->
+        <section class="frame frame--light is-active" id="f1" aria-label="Judgement phase">
+          <div class="f1-head">
+            <div>
+              <h1 class="f1-title">Six Harmless Things</h1>
+              <p class="f1-sub">Each of these was posted publicly. Which are safe to share?</p>
+            </div>
+            <div class="pill" id="pill">Item 1 of 6</div>
+          </div>
+
+          <div class="post" id="post" aria-live="polite">
+            <div class="post-top">
+              <div class="avatar">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="#b9bcca" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M12 13.5c-4.5 0-7.5 2.6-7.5 5.2V21h15v-2.3c0-2.6-3-5.2-7.5-5.2z"/></svg>
+              </div>
+              <div class="post-id">
+                <div class="post-name" id="postName">Dana Whitfield</div>
+                <div class="post-meta" id="postMeta">Operations Lead · 2h · <b>Public</b></div>
+              </div>
+            </div>
+            <p class="post-body" id="postBody">Great week — welcoming four new geochem techs to our Kalgoorlie lab!</p>
+            <div class="post-actions"><span>Like</span><span>Comment</span><span>Share</span></div>
+          </div>
+
+          <div class="choices">
+            <button class="btn btn--safe" id="btnSafe">Safe to post</button>
+            <button class="btn btn--nope" id="btnNope">Not safe</button>
+          </div>
+
+          <div class="dots" id="dots" role="img" aria-label="Progress through six items"></div>
+        </section>
+
+        <!-- ============ FRAME 2 — Reveal ============ -->
+        <section class="frame frame--light" id="f2" aria-label="The reveal">
+          <h1 class="f2-title">Now watch what happens when you combine them.</h1>
+          <div class="f2-body">
+            <div class="f2-left" id="miniList"></div>
+
+            <div class="connectors" id="connectors">
+              <svg width="70" height="100%" viewBox="0 0 70 480" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 40 C40 40 40 240 70 240"/>
+                <path d="M0 120 C40 120 40 240 70 240"/>
+                <path d="M0 200 C40 200 40 240 70 240"/>
+                <path d="M0 280 C40 280 40 240 70 240"/>
+                <path d="M0 360 C40 360 40 240 70 240"/>
+                <path d="M0 440 C40 440 40 240 70 240"/>
+              </svg>
+            </div>
+
+            <div class="f2-right">
+              <div class="ai" id="aiCard">
+                <div class="ai-head">
+                  <div class="ai-dot"></div>
+                  <span class="ai-status">Analysis complete</span>
+                  <span class="ai-tag">AI Analysis</span>
+                </div>
+                <div class="ai-lines" id="aiLines"></div>
+                <div class="ai-foot" id="aiFoot">
+                  <div class="ai-foot-text">Nobody disclosed a client, a grade, or a result.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ FRAME 3 — Takeaway ============ -->
+        <section class="frame frame--navy" id="f3" aria-label="Takeaway">
+          <div class="rule"></div>
+          <h1 class="f3-title">Every one of those was safe. The pattern wasn't.</h1>
+          <p class="f3-sub">Before you post, ask: what does this add to the picture that's already out there?</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="navContinue" hidden>Continue →</button>
+    <button class="nav-btn" id="navRestart" hidden>Restart</button>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Content (from the design handoff; all fictional) ----------------
+  var POSTS = [
+    { name:'Dana Whitfield',           role:'Operations Lead',      meta:'2h',
+      body:'Great week — welcoming four new geochem techs to our Kalgoorlie lab!' },
+    { name:'Northline Talent',         role:'Recruitment',          meta:'5h',
+      body:'We’re hiring: ICP-MS Operator (gold-ore assays). Kalgoorlie-based, full-time, immediate start. Tag someone who’d be great.' },
+    { name:'Marcus Hale',              role:'Principal Geochemist',  meta:'1d',
+      body:'Pleased to co-present at next month’s symposium — our joint abstract with the client’s lead exploration geologist is now in the program.' },
+    { name:'Kalgoorlie Assay Services',role:'Company page',          meta:'3h',
+      body:'Busy despatch morning — another batch of sample crates heading out from the loading dock.' },
+    { name:'Dana Whitfield',           role:'Operations Lead',      meta:'6h',
+      body:'Out of office — on site until the 14th. For urgent assay queries, please email the lab team.' },
+    { name:'Goldfields Mining News',   role:'Community page',        meta:'2d',
+      body:'New exploration licence granted just north of town — the tenement register update is public. Plenty of activity in the district lately.' }
+  ];
+
+  var MINI = [
+    'New geochem techs — Kalgoorlie',
+    'Job ad: ICP-MS operator, gold-ore',
+    'Conference abstract with client geologist',
+    'Photo: sample crates on loading dock',
+    'Out-of-office: on site until the 14th',
+    'Public tenement record nearby'
+  ];
+
+  var INFERENCES = [
+    'Client identified: a junior explorer running a gold programme',
+    'Location narrowed: specific tenement area near Kalgoorlie',
+    'ALS is performing the assays',
+    'Programme is scaling — and results are flowing now, pre-announcement'
+  ];
+
+  var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#336633" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>';
+  var CHECK_WHITE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>';
+  var CHECK_GREEN_ONNAVY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5fbf6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>';
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- State -----------------------------------------------------------
+  var state = { current:0, answers:[], phase:'judgement' };
+
+  var el = {
+    f1:document.getElementById('f1'), f2:document.getElementById('f2'), f3:document.getElementById('f3'),
+    pill:document.getElementById('pill'),
+    postName:document.getElementById('postName'), postMeta:document.getElementById('postMeta'), postBody:document.getElementById('postBody'),
+    dots:document.getElementById('dots'),
+    btnSafe:document.getElementById('btnSafe'), btnNope:document.getElementById('btnNope'),
+    miniList:document.getElementById('miniList'), connectors:document.getElementById('connectors'),
+    aiCard:document.getElementById('aiCard'), aiLines:document.getElementById('aiLines'), aiFoot:document.getElementById('aiFoot'),
+    navContinue:document.getElementById('navContinue'), navRestart:document.getElementById('navRestart')
+  };
+
+  // ---- Frame 1 rendering ----------------------------------------------
+  function renderPost(){
+    var p = POSTS[state.current];
+    el.pill.textContent = 'Item ' + (state.current + 1) + ' of 6';
+    el.postName.textContent = p.name;
+    el.postMeta.innerHTML = (p.role ? p.role + ' · ' : '') + p.meta + ' · <b>Public</b>';
+    el.postBody.textContent = p.body;
+  }
+
+  function renderDots(){
+    var html = '';
+    for (var i = 0; i < 6; i++){
+      var cls, inner;
+      if (i < state.current){ cls = 'dot--done'; inner = CHECK_WHITE; }
+      else if (i === state.current){ cls = 'dot--current'; inner = String(i + 1); }
+      else { cls = 'dot--todo'; inner = String(i + 1); }
+      html += '<div class="dot ' + cls + '">' + inner + '</div>';
+    }
+    el.dots.innerHTML = html;
+  }
+
+  function answer(choice){
+    if (state.phase !== 'judgement') return;
+    state.answers[state.current] = choice;
+    state.current++;
+    if (state.current >= 6){ toReveal(); }
+    else { renderPost(); renderDots(); }
+  }
+
+  // ---- Frame 2 build + reveal sequence ---------------------------------
+  function buildFrame2(){
+    // mini cards
+    var mh = '';
+    for (var i = 0; i < MINI.length; i++){
+      mh += '<div class="mini"><div class="mini-check">' + CHECK + '</div>' +
+            '<div class="mini-label">' + MINI[i] + '</div></div>';
+    }
+    el.miniList.innerHTML = mh;
+
+    // inference lines
+    var ih = '';
+    for (var j = 0; j < INFERENCES.length; j++){
+      ih += '<div class="infer"><div class="infer-mark">' + CHECK_GREEN_ONNAVY + '</div>' +
+            '<div class="infer-text">' + INFERENCES[j] + '</div></div>';
+    }
+    el.aiLines.innerHTML = ih;
+
+    // connector dash lengths so they can "draw"
+    var paths = el.connectors.querySelectorAll('path');
+    for (var k = 0; k < paths.length; k++){
+      var len = paths[k].getTotalLength();
+      paths[k].style.setProperty('--len', len);
+    }
+  }
+
+  function showFrame(name){
+    el.f1.classList.toggle('is-active', name === 'f1');
+    el.f2.classList.toggle('is-active', name === 'f2');
+    el.f3.classList.toggle('is-active', name === 'f3');
+  }
+
+  function toReveal(){
+    state.phase = 'reveal';
+    buildFrame2();
+    showFrame('f2');
+    el.navRestart.hidden = false;
+    el.navContinue.hidden = false;
+
+    var minis = el.miniList.querySelectorAll('.mini');
+    var infers = el.aiLines.querySelectorAll('.infer');
+
+    if (reduceMotion){
+      minis.forEach(function(m){ m.classList.add('in'); });
+      el.connectors.classList.add('draw');
+      el.aiCard.classList.add('in');
+      infers.forEach(function(f){ f.classList.add('in'); });
+      el.aiFoot.classList.add('in');
+      return;
+    }
+
+    // Quiet, staggered reveal: cards settle → connectors draw → panel →
+    // inference lines stagger → emphasis line last.
+    minis.forEach(function(m, i){ setTimeout(function(){ m.classList.add('in'); }, 90 * i); });
+    setTimeout(function(){ el.connectors.classList.add('draw'); }, 90 * minis.length + 120);
+    setTimeout(function(){ el.aiCard.classList.add('in'); }, 90 * minis.length + 260);
+    var base = 90 * minis.length + 620;
+    infers.forEach(function(f, i){ setTimeout(function(){ f.classList.add('in'); }, base + 120 * i); });
+    setTimeout(function(){ el.aiFoot.classList.add('in'); }, base + 120 * infers.length + 120);
+  }
+
+  function toTakeaway(){
+    state.phase = 'takeaway';
+    showFrame('f3');
+    el.navContinue.hidden = true;
+    el.navRestart.hidden = false;
+  }
+
+  function restart(){
+    state.current = 0; state.answers = []; state.phase = 'judgement';
+    // reset frame-2 animation classes
+    el.connectors.classList.remove('draw');
+    el.aiCard.classList.remove('in');
+    el.aiFoot.classList.remove('in');
+    el.miniList.innerHTML = ''; el.aiLines.innerHTML = '';
+    el.navContinue.hidden = true; el.navRestart.hidden = true;
+    renderPost(); renderDots(); showFrame('f1');
+  }
+
+  // ---- Events ----------------------------------------------------------
+  el.btnSafe.addEventListener('click', function(){ answer('safe'); });
+  el.btnNope.addEventListener('click', function(){ answer('not-safe'); });
+  el.navContinue.addEventListener('click', toTakeaway);
+  el.navRestart.addEventListener('click', restart);
+
+  document.addEventListener('keydown', function(e){
+    if (state.phase === 'reveal' && (e.key === 'Enter' || e.key === ' ')){
+      e.preventDefault(); toTakeaway();
+    }
+  });
+
+  // ---- Scale-to-fit (keeps the 1280x720 canvas pixel-accurate) ---------
+  var scaler = document.getElementById('scaler');
+  function fit(){
+    var pad = 48;
+    var s = Math.min((window.innerWidth - pad) / 1280, (window.innerHeight - pad) / 720);
+    s = Math.min(s, 1);
+    scaler.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  // ---- Init ------------------------------------------------------------
+  renderPost(); renderDots(); fit();
+})();
+</script>
+</body>
+</html>
