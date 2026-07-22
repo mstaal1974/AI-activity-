@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Caller — Phishing &amp; Social Engineering | ABC Training &amp; Consulting</title>
+<meta name="description" content="A branching phone-call dialogue: practise recognising a vishing (voice phishing) call and saying the safe sentence that feels rude. Course 1.9 Lesson 2.">
+<style>
+  :root{
+    --navy:#191246;
+    --green:#336633;
+    --grey:#666666;
+    --red:#b23b4a;
+    --paper:#eceef1;
+    --card:#ffffff;
+    --ink:#2a2740;
+    --navy-soft:#f0eefb;
+    --green-tint:#eef4ee;
+    --red-tint:#fbeef0;
+    --line:#e3e3e8;
+    --font:'Raleway', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:clamp(12px,3vw,28px);
+  }
+  /* Header */
+  header .row1{
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  }
+  header .row1 .left{color:var(--grey)}
+  header .row1 .right{color:var(--navy)}
+  .tag{
+    display:inline-block;margin-top:12px;
+    background:var(--navy-soft);color:var(--navy);
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    border-radius:99px;padding:8px 12px;
+  }
+  /* Card */
+  .card{
+    background:var(--card);border-radius:18px;margin-top:16px;
+    box-shadow:0 12px 40px -12px rgba(25,18,70,.22);
+    padding:clamp(22px,4vw,44px);
+  }
+  h1{
+    margin:0;font-weight:800;font-size:clamp(24px,3.2vw,32px);color:var(--navy);
+    letter-spacing:-.01em;
+  }
+  .prompt{margin:6px 0 0;font-weight:500;font-size:16px;color:#3a3752}
+  .framing{
+    margin:18px 0 0;padding:14px 16px;border-radius:12px;
+    background:var(--navy-soft);border-left:4px solid var(--navy);
+    font-size:14.5px;color:#3a3752;
+  }
+  .framing strong{color:var(--navy)}
+  /* Progress */
+  .progress{
+    display:flex;align-items:center;gap:10px;margin-top:22px;
+    font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--grey);
+  }
+  .progress .bar{flex:1;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+  .progress .bar > i{display:block;height:100%;width:0;background:var(--green);transition:width .35s ease}
+
+  /* Phone panel */
+  .phone{
+    margin-top:20px;background:var(--navy);border-radius:22px;
+    padding:clamp(18px,4vw,28px);color:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px -14px rgba(25,18,70,.7);
+  }
+  .phone .status{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+    color:#b9b3e6;margin-bottom:16px;
+  }
+  .phone .status .dot{display:inline-flex;align-items:center;gap:8px}
+  .phone .status .dot::before{
+    content:"";width:8px;height:8px;border-radius:99px;background:#5fd07a;display:inline-block;
+  }
+
+  /* Intro / ringing */
+  .ring-wrap{text-align:center;padding:14px 0 6px}
+  .ringbtn{
+    width:96px;height:96px;border-radius:99px;border:0;cursor:pointer;
+    background:#2fa84f;color:#fff;font-size:40px;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;margin:0 auto;
+    box-shadow:0 0 0 0 rgba(95,208,122,.65);
+    animation:pulse 1.6s infinite, ringwobble 1.2s infinite;
+  }
+  .ringbtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(95,208,122,.55)}
+    70%{box-shadow:0 0 0 22px rgba(95,208,122,0)}
+    100%{box-shadow:0 0 0 0 rgba(95,208,122,0)}
+  }
+  @keyframes ringwobble{
+    0%,100%{transform:rotate(0)}
+    20%{transform:rotate(-12deg)}
+    40%{transform:rotate(10deg)}
+    60%{transform:rotate(-8deg)}
+    80%{transform:rotate(6deg)}
+  }
+  .ring-caption{margin:16px 0 4px;color:#d9d5f2;font-size:15px}
+  .ring-sub{margin:0 0 18px;color:#9d97cf;font-size:12.5px}
+
+  /* Chat bubbles */
+  .bubble{
+    background:#241c58;border-radius:14px;border-top-left-radius:4px;
+    padding:14px 16px;margin:10px 0 4px;max-width:88%;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  .bubble .who{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+    color:#8fd4a3;margin-bottom:6px;
+  }
+  .bubble p{margin:0;color:#f2f1fb;font-size:16px}
+  .narrator{
+    margin:8px 0 2px;color:#c9c4ec;font-style:italic;font-size:14.5px;
+    border-left:3px solid #4a3f8f;padding-left:12px;
+  }
+
+  /* Options */
+  .options{margin-top:18px;display:grid;gap:10px}
+  .opt{
+    text-align:left;width:100%;cursor:pointer;font-family:inherit;
+    background:#fff;color:var(--ink);border:1.5px solid var(--line);
+    border-radius:12px;padding:13px 15px;font-size:15.5px;font-weight:500;
+    transition:border-color .18s ease, transform .06s ease, box-shadow .18s ease;
+  }
+  .opt:hover{border-color:var(--navy)}
+  .opt:active{transform:translateY(1px)}
+  .opt:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+  .opt .me{
+    display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    font-weight:700;color:var(--grey);margin-bottom:3px;
+  }
+  .opt.safe .flag{color:var(--green);font-weight:800}
+  .opt[disabled]{cursor:default;opacity:1}
+  .opt.chosen{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-soft)}
+  .opt.reveal-safe{border-color:var(--green);background:var(--green-tint)}
+  .opt.dimmed{opacity:.5}
+
+  /* Ending panels */
+  .ending{border-radius:14px;padding:clamp(18px,3.5vw,26px);margin-top:6px}
+  .ending.best{background:var(--green-tint);border-left:5px solid var(--green)}
+  .ending.poor{background:var(--red-tint);border-left:5px solid var(--red)}
+  .ending .verdict{
+    display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--navy);
+  }
+  .ending .badge{
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;
+    padding:4px 10px;border-radius:99px;
+  }
+  .ending.best .badge{background:var(--green);color:#fff}
+  .ending.poor .badge{background:var(--red);color:#fff}
+  .ending p.body{margin:12px 0 0;color:#3a3752;font-size:15.5px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .btn{
+    font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;
+    border-radius:10px;padding:11px 16px;border:1.5px solid var(--navy);
+    background:var(--navy);color:#fff;transition:opacity .15s ease;
+  }
+  .btn:hover{opacity:.9}
+  .btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+  .btn.ghost{background:transparent;color:var(--navy)}
+  .btn.ghost:focus-visible{outline-offset:2px}
+
+  .replay-note{margin-top:14px;font-size:13px;color:var(--grey)}
+  .replay-note b{color:var(--green)}
+
+  /* Footer */
+  footer{margin-top:18px;color:var(--grey);font-size:12px}
+  footer p{margin:2px 0}
+
+  .visually-hidden{
+    position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+  @media (max-width:560px){
+    .bubble{max-width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="row1">
+      <span class="left">ABC Training &amp; Consulting · RTO 5800</span>
+      <span class="right">Course 1.9 · Lesson 2 — Phishing</span>
+    </div>
+    <span class="tag">Branching Dialogue · ~6 min</span>
+  </header>
+
+  <main class="card">
+    <h1>The Caller</h1>
+    <p class="prompt">A friendly voice, a real-sounding problem, and three chances to say the one sentence that feels rude.</p>
+
+    <div class="framing">
+      <strong>Why this is hard.</strong> Social engineering works because refusing feels
+      impolite. The safest sentence — <em>“I’ll call you back on the number we already
+      have”</em> — is also the one that feels most like accusing someone of lying. This
+      activity is practice at saying it.
+    </div>
+
+    <div class="progress" aria-hidden="true">
+      <span id="progLabel">Incoming call</span>
+      <span class="bar"><i id="progFill"></i></span>
+    </div>
+
+    <section class="phone" aria-label="Phone call">
+      <div class="status">
+        <span class="dot" id="callState">Incoming call</span>
+        <span id="callLine">Mobile · unknown number</span>
+      </div>
+      <div id="stage"></div>
+    </section>
+
+    <div id="live" class="visually-hidden" aria-live="polite"></div>
+  </main>
+
+  <footer>
+    <p>Interactive learning activity · All senders, domains, people and results are fictional.</p>
+    <p>ABC Training &amp; Consulting (RTO 5800) · Course 1.9 Lesson 2</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var stage = document.getElementById('stage');
+  var live = document.getElementById('live');
+  var progLabel = document.getElementById('progLabel');
+  var progFill = document.getElementById('progFill');
+  var callState = document.getElementById('callState');
+  var callLine = document.getElementById('callLine');
+
+  // Track which safe choices were taken this run so replay can show them.
+  var story = {
+
+    turn1: {
+      prog: {label:'Turn 1 of 3', pct:15},
+      state:'On call', line:'“Dave” · 00:04',
+      dave: "Morning — Dave here, NovaLab technical support. We’ve had a fault flag come through from one of your ICP-MS units. Got a minute?",
+      choices:[
+        { me:'You say', text:'“Sure — what’s the problem?”',
+          consequence:'You’re in the conversation now. Notice he hasn’t proved anything yet — and already you’re helping.',
+          go:'turn2' },
+        { me:'You say', text:'“Which unit? We’ve got three.”',
+          consequence:'Careful — you just told him you have three ICP-MS units, and that you’re someone who answers questions. He knew neither a moment ago.',
+          go:'turn2' },
+        { me:'You say', safe:true, text:'“I’ll call you back on the number we have for NovaLab.”',
+          consequence:'Straight to it. He’ll say that’s not necessary — it always is.',
+          go:'endBest' }
+      ]
+    },
+
+    turn2: {
+      prog: {label:'Turn 2 of 3', pct:45},
+      state:'On call', line:'“Dave” · 00:38',
+      dave: "It’ll be the one running the gold-ore method — serial ending 4471, that sound right?",
+      choices:[
+        { me:'You say', text:'“Yeah, that’s the one.”',
+          consequence:'He was guessing. Now he isn’t — and the next person he calls will hear a real serial number, which makes him sound completely legitimate.',
+          go:'turn3' },
+        { me:'You say', text:'“I’m not confirming equipment details over the phone.”',
+          consequence:'Good. He’ll push, warmly, and imply you’re being difficult. That’s the lever — hold.',
+          go:'turn3' },
+        { me:'You say', safe:true, text:'“I’ll call NovaLab back on our own number.”',
+          consequence:'Right call, and it costs you nothing but thirty seconds.',
+          go:'endBest' }
+      ]
+    },
+
+    turn3: {
+      prog: {label:'Turn 3 of 3', pct:75},
+      state:'On call', line:'“Dave” · 01:15',
+      dave: "No worries. I just need to push a diagnostic — pop over to this address and read me the six-digit code that comes up. Two seconds and I’m out of your hair.",
+      choices:[
+        { me:'You say', text:'“Read him the code.”',
+          consequence:'That code was a remote-access session. He’s now on the instrument PC — and from there, the network.',
+          go:'endPoor' },
+        { me:'You say', safe:true, text:'“No. I’ll call NovaLab on our own number.”',
+          consequence:'The only correct answer — and the one you could have given three turns ago.',
+          go:'endBest' }
+      ]
+    }
+  };
+
+  var endings = {
+    endBest:{
+      kind:'best', badge:'Nothing there', title:'Best outcome',
+      body:'You ring NovaLab on the number you already had. There’s no Dave. There’s no fault flag. IT tells you three other labs got the same call this week — and you’re the first to report it. The most powerful thing you did was also the thing that felt rudest: you didn’t take his word for who he was.'
+    },
+    endPoor:{
+      kind:'poor', badge:'He’s in', title:'Poor outcome',
+      body:'Within minutes someone is working on the instrument PC, and from there into the network. Dave never hacked anything. He was warm, he was plausible, he knew your instrument — and you didn’t want to be difficult. The way out was available on the very first turn.'
+    }
+  };
+
+  function setProgress(label, pct){
+    progLabel.textContent = label;
+    progFill.style.width = pct + '%';
+  }
+
+  function announce(msg){ live.textContent = msg; }
+
+  // ---- Intro / ringing state ----
+  function renderIntro(){
+    setProgress('Incoming call', 6);
+    callState.textContent = 'Incoming call';
+    callLine.textContent = 'Mobile · unknown number';
+    stage.innerHTML =
+      '<div class="ring-wrap">' +
+        '<button class="ringbtn" id="answerBtn" aria-label="Answer the call">📞</button>' +
+        '<p class="ring-caption">The phone rings at the bench.</p>' +
+        '<p class="ring-sub">You don’t recognise the number.</p>' +
+        '<button class="btn" id="answerBtn2">Answer the call</button>' +
+      '</div>';
+    document.getElementById('answerBtn').addEventListener('click', answer);
+    document.getElementById('answerBtn2').addEventListener('click', answer);
+  }
+
+  function answer(){
+    announce('Call answered. Dave from NovaLab support is speaking.');
+    renderTurn('turn1');
+  }
+
+  // ---- Turn rendering ----
+  function renderTurn(key){
+    var t = story[key];
+    setProgress(t.prog.label, t.prog.pct);
+    callState.textContent = t.state;
+    callLine.textContent = t.line;
+
+    var html =
+      '<div class="bubble">' +
+        '<div class="who">“Dave” · NovaLab support</div>' +
+        '<p>' + t.dave + '</p>' +
+      '</div>' +
+      '<div class="options" role="group" aria-label="Choose what you say">';
+
+    t.choices.forEach(function(c, i){
+      html += '<button class="opt' + (c.safe ? ' safe' : '') + '" data-i="' + i + '">' +
+                '<span class="me">' + c.me + '</span>' +
+                (c.safe ? '<span class="flag">✓ </span>' : '') + c.text +
+              '</button>';
+    });
+    html += '</div><div id="consequence"></div>';
+    stage.innerHTML = html;
+
+    var btns = stage.querySelectorAll('.opt');
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){
+        onChoose(key, parseInt(b.getAttribute('data-i'),10), btns);
+      });
+    });
+  }
+
+  function onChoose(key, idx, btns){
+    var t = story[key];
+    var choice = t.choices[idx];
+
+    // Lock all options, reveal the safe one so the learner can always see it.
+    btns.forEach(function(b, i){
+      b.setAttribute('disabled','');
+      var c = t.choices[i];
+      if(i === idx){ b.classList.add('chosen'); }
+      else { b.classList.add('dimmed'); }
+      if(c.safe){ b.classList.add('reveal-safe'); }
+    });
+
+    var cons = document.getElementById('consequence');
+    cons.innerHTML = '<p class="narrator">' + choice.consequence + '</p>';
+    announce(choice.consequence);
+
+    var advance = document.createElement('div');
+    advance.className = 'controls';
+    var next = document.createElement('button');
+    next.className = 'btn';
+    var goesToEnd = /^end/.test(choice.go);
+    next.textContent = goesToEnd ? 'See how it ends →' : 'Continue →';
+    next.addEventListener('click', function(){
+      if(goesToEnd){ renderEnding(choice.go); }
+      else { renderTurn(choice.go); }
+    });
+    advance.appendChild(next);
+    cons.appendChild(advance);
+    next.focus();
+  }
+
+  // ---- Endings ----
+  function renderEnding(key){
+    var e = endings[key];
+    setProgress(e.kind === 'best' ? 'Call ended · safe' : 'Call ended', 100);
+    callState.textContent = 'Call ended';
+    callLine.textContent = e.kind === 'best' ? 'You hung up.' : 'They got what they wanted.';
+
+    var icon = e.kind === 'best' ? '✓' : '✕';
+    var html =
+      '<div class="ending ' + e.kind + '" role="status">' +
+        '<div class="verdict"><span aria-hidden="true">' + icon + '</span> ' +
+          e.title + ' <span class="badge">' + e.badge + '</span></div>' +
+        '<p class="body">' + e.body + '</p>' +
+      '</div>' +
+      '<p class="replay-note">Replay the call and watch for the <b>✓ safe move</b> — it’s offered on every single turn.</p>' +
+      '<div class="controls">' +
+        '<button class="btn" id="replay">↺ Replay the call</button>' +
+        '<button class="btn ghost" id="reset">Start again</button>' +
+      '</div>';
+    stage.innerHTML = html;
+    announce(e.title + '. ' + e.body);
+
+    document.getElementById('replay').addEventListener('click', restart);
+    document.getElementById('reset').addEventListener('click', restart);
+  }
+
+  function restart(){
+    announce('Restarting. The phone is ringing again.');
+    renderIntro();
+  }
+
+  // Init
+  renderIntro();
+})();
+</script>
+</body>
+</html>
