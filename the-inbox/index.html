@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Inbox — Email Triage · ABC Training & Consulting</title>
+<meta name="description" content="An interactive email-triage activity: for each of six messages, decide whether to act on it, verify it first, or report it as phishing. Course 1.9 Lesson 2 — Phishing & Social Engineering.">
+<style>
+  :root{
+    --navy:#191246;
+    --green:#336633;
+    --grey:#666666;
+    --red:#b23b4a;
+    --paper:#eceef1;
+    --card:#ffffff;
+    --ink:#2a2740;
+    --navy-soft:#f0eefb;
+    --green-tint:#eef4ee;
+    --red-tint:#fbeef0;
+    --amber:#9a6a12;
+    --amber-tint:#fbf4e6;
+    --line:#e3e3e8;
+    --font:'Raleway',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(12px,3vw,28px);
+  }
+  .wrap{max-width:940px;margin:0 auto}
+
+  /* Header */
+  .topbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+  .topbar .l{color:var(--grey)}
+  .topbar .r{color:var(--navy)}
+  .eyebrow{display:inline-block;margin-top:12px;background:var(--navy-soft);color:var(--navy);
+    font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    padding:8px 12px;border-radius:99px}
+
+  /* Card */
+  .card{background:var(--card);border-radius:18px;box-shadow:0 12px 40px -12px rgba(25,18,70,.22);
+    padding:clamp(22px,4vw,44px);margin-top:14px}
+  h1{font-weight:800;font-size:clamp(24px,3.2vw,32px);color:var(--navy);margin:0}
+  .prompt{font-weight:500;font-size:16px;color:#3a3752;margin:8px 0 0}
+
+  /* Progress + actions bar */
+  .bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:20px 0 16px}
+  .prog{font-size:13px;font-weight:700;color:var(--grey);letter-spacing:.02em}
+  .track{flex:1;min-width:120px;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+  .track>span{display:block;height:100%;width:0;background:var(--green);border-radius:99px;
+    transition:width .3s ease}
+  .btn{font-family:inherit;font-weight:700;font-size:14px;border-radius:10px;cursor:pointer;
+    border:1.5px solid transparent;padding:10px 16px;transition:background .15s,border-color .15s,color .15s}
+  .btn-check{background:var(--navy);color:#fff}
+  .btn-check:hover:not(:disabled){background:#241a5e}
+  .btn-check:disabled{background:#c9c7d4;color:#fff;cursor:not-allowed}
+  .btn-reset{background:transparent;color:var(--navy);border-color:var(--line)}
+  .btn-reset:hover{border-color:var(--navy)}
+
+  /* Mail client */
+  .client{display:grid;grid-template-columns:300px 1fr;border:1px solid var(--line);
+    border-radius:14px;overflow:hidden;min-height:440px;background:#fff}
+  .list{border-right:1px solid var(--line);background:#fafafb;overflow:hidden}
+  .list-head{padding:12px 14px;font-size:11px;font-weight:800;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--grey);border-bottom:1px solid var(--line);background:#fff}
+  .msgbtn{display:block;width:100%;text-align:left;background:transparent;border:0;
+    border-bottom:1px solid var(--line);padding:12px 14px;cursor:pointer;font-family:inherit;
+    position:relative}
+  .msgbtn:hover{background:#f1f0f6}
+  .msgbtn.sel{background:#fff;box-shadow:inset 3px 0 0 var(--navy)}
+  .msgbtn .row1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .msgbtn .sender{font-weight:700;font-size:14px;color:var(--navy);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .msgbtn.read .sender{font-weight:600;color:#4a4763}
+  .msgbtn .time{font-size:11px;color:var(--grey);white-space:nowrap;flex:none}
+  .msgbtn .subj{font-size:13px;color:var(--ink);margin-top:2px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .msgbtn.read .subj{color:#5b5872}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--navy);
+    margin-right:6px;vertical-align:middle;flex:none}
+  .msgbtn.read .dot{background:transparent}
+  .state{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:11px;
+    font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:99px}
+  .state.need{background:var(--amber-tint);color:var(--amber)}
+  .state.done{background:var(--green-tint);color:var(--green)}
+  .state.ok{background:var(--green-tint);color:var(--green)}
+  .state.bad{background:var(--red-tint);color:var(--red)}
+
+  /* Reading pane */
+  .pane{padding:clamp(16px,3vw,26px);overflow:hidden}
+  .backbtn{display:none;font-family:inherit;background:transparent;border:1px solid var(--line);
+    color:var(--navy);font-weight:700;font-size:13px;border-radius:8px;padding:6px 12px;
+    cursor:pointer;margin-bottom:14px}
+  .p-subj{font-weight:800;font-size:clamp(17px,2.4vw,21px);color:var(--navy);margin:0 0 10px;line-height:1.3}
+  .p-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline;
+    padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .p-from{font-size:14px}
+  .p-from .name{font-weight:700;color:var(--ink)}
+  .p-from .addr{color:var(--grey);word-break:break-all}
+  .p-from .addr.internal{font-style:italic}
+  .p-time{font-size:12px;color:var(--grey);white-space:nowrap}
+  .hint{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:var(--navy);
+    background:var(--navy-soft);padding:3px 10px;border-radius:99px}
+  .body{margin:16px 0 4px;font-size:15px;color:var(--ink);line-height:1.6}
+  .baitlink{display:inline-block;color:#2b4a99;background:#eef2fb;border:1px solid #d5def3;
+    border-radius:6px;padding:3px 12px;font-weight:600;font-size:14px;cursor:not-allowed;
+    text-decoration:underline;margin:2px 0}
+
+  /* Action choices */
+  .choices{margin-top:20px;display:grid;gap:8px}
+  .clabel{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--grey);margin-bottom:2px}
+  .choice{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:inherit;
+    background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;
+    cursor:pointer;font-size:15px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
+  .choice:hover:not(:disabled){border-color:#b9b6cc}
+  .choice .mark{width:20px;height:20px;border-radius:99px;border:2px solid #b9b6cc;flex:none;
+    display:grid;place-items:center;transition:border-color .15s}
+  .choice.on{border-color:var(--navy);background:var(--navy-soft)}
+  .choice.on .mark{border-color:var(--navy)}
+  .choice.on .mark::after{content:"";width:10px;height:10px;border-radius:99px;background:var(--navy)}
+  .choice:disabled{cursor:default}
+  .choice.correctpick{border-color:var(--green);background:var(--green-tint)}
+  .choice.correctpick .mark{border-color:var(--green)}
+  .choice.correctpick .mark::after{content:"✓";color:var(--green);font-weight:800;font-size:13px;
+    width:auto;height:auto;background:transparent}
+  .choice.wrongpick{border-color:var(--red);background:var(--red-tint)}
+  .choice.wrongpick .mark{border-color:var(--red)}
+  .choice.wrongpick .mark::after{content:"✕";color:var(--red);font-weight:800;font-size:13px;
+    width:auto;height:auto;background:transparent}
+  .choice.answerhint{border-color:var(--green);border-style:dashed}
+
+  /* Feedback */
+  .fb{margin-top:18px;border-radius:12px;border-left:4px solid;padding:14px 16px;font-size:14.5px}
+  .fb.good{background:var(--green-tint);border-left-color:var(--green)}
+  .fb.bad{background:var(--red-tint);border-left-color:var(--red)}
+  .fb .verdict{font-weight:800;color:var(--navy);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .fb .why{color:#3a3752}
+  .over{margin-top:12px;padding-top:12px;border-top:2px dashed #e4c58a;color:#7a5410;font-size:14px}
+  .over b{color:var(--amber)}
+
+  .score{margin-top:22px;background:var(--navy-soft);border-radius:12px;padding:18px 20px;
+    display:none}
+  .score.show{display:block}
+  .score .num{font-weight:800;font-size:19px;color:var(--navy)}
+  .score .close{margin-top:8px;color:#3a3752;font-size:15px;line-height:1.6}
+
+  .footer{margin-top:16px;font-size:12px;color:var(--grey);line-height:1.6}
+
+  .empty{display:grid;place-items:center;height:100%;color:var(--grey);font-size:14px;text-align:center;padding:30px}
+
+  :focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+
+  /* Mobile: collapse to single view */
+  @media(max-width:680px){
+    .client{grid-template-columns:1fr}
+    .list{border-right:0;border-bottom:1px solid var(--line)}
+    .client.reading .list{display:none}
+    .client:not(.reading) .pane{display:none}
+    .backbtn{display:inline-block}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="topbar">
+      <span class="l">ABC Training &amp; Consulting · RTO 5800</span>
+      <span class="r">Course 1.9 · Lesson 2 — Phishing</span>
+    </div>
+    <span class="eyebrow">TRIAGE · 6 MESSAGES · ~10 MIN</span>
+  </header>
+
+  <main class="card">
+    <h1>The Inbox</h1>
+    <p class="prompt">Six messages. For each one: act on it, check it first, or report it.</p>
+
+    <div class="bar">
+      <span class="prog" id="prog" aria-live="polite">0 of 6 triaged</span>
+      <span class="track"><span id="fill"></span></span>
+      <button class="btn btn-check" id="checkBtn" disabled>Check my triage</button>
+      <button class="btn btn-reset" id="resetBtn">Start again</button>
+    </div>
+
+    <div class="client" id="client">
+      <div class="list" id="list" role="listbox" aria-label="Message list">
+        <div class="list-head">Inbox — 6 messages</div>
+      </div>
+      <div class="pane" id="pane">
+        <div class="empty" id="empty">Select a message on the left to begin.</div>
+      </div>
+    </div>
+
+    <div class="score" id="score" aria-live="polite">
+      <div class="num" id="scoreNum"></div>
+      <div class="close" id="scoreClose"></div>
+    </div>
+
+    <p class="footer">
+      Interactive learning activity · All senders, domains, people and results are fictional.<br>
+      ABC Training &amp; Consulting (RTO 5800) · Course 1.9 Lesson 2
+    </p>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ACTIONS = [
+    {key:"safe",   label:"Safe — act on it"},
+    {key:"verify", label:"Verify first"},
+    {key:"report", label:"Report as phishing"}
+  ];
+
+  var MESSAGES = [
+    {
+      id:1,
+      name:"NovaLab Instruments",
+      addr:"service@novalab.com.au",
+      time:"08:03",
+      subject:"Firmware 7.2 now available for ICP-MS",
+      body:"Firmware 7.2 is available for your instrument. To arrange installation, please log a request through your usual support portal or speak to your account manager. No action is required from this message.",
+      correct:"safe",
+      legit:true,
+      why:"No link, no attachment, no urgency, no credential request — and it points you to a channel you already use. This is what a legitimate vendor notice actually looks like.",
+      overReportNote:"Understandable — but look at what it does not do. If we report messages like this, the real ones get lost in the pile."
+    },
+    {
+      id:2,
+      name:"NATA Compliance",
+      addr:"notifications@nata-accreditation-portal.net",
+      time:"08:14",
+      subject:"URGENT: Accreditation submission overdue — action required",
+      body:"Your laboratory's accreditation status is at risk. Submit the outstanding declaration within 24 hours to avoid suspension.\n\n[ Access submission portal ]",
+      correct:"report",
+      legit:false,
+      why:"Authority, fear and urgency at once, a lookalike domain, and a link. Accreditation bodies do not threaten suspension via an emailed link. Three levers at once is itself the tell."
+    },
+    {
+      id:3,
+      name:"ALS IT Service Desk",
+      addr:"IT Service Desk (internal)",
+      internal:true,
+      time:"07:52",
+      subject:"MFA upgrade next Tuesday — no action needed",
+      body:"We are upgrading multi-factor authentication next Tuesday. You do not need to do anything. If you are prompted to re-register, do it from the IT portal you normally use — never from a link in an email.",
+      correct:"safe",
+      legit:true,
+      why:"Internal, asks nothing, contains no link — and it models the right behaviour. A genuine IT team tells you what it will never ask you to do.",
+      overReportNote:"A genuine IT notice that asks for nothing is not a threat. Reporting these trains everyone to stop reading them."
+    },
+    {
+      id:4,
+      name:"Sarah Chen",
+      addr:"s.chen@northgateminerals.com.au",
+      time:"09:21",
+      hint:"A real, known contact",
+      subject:"Re: Ravensthorpe results — send to my personal address?",
+      body:"Hi — I am off-site all week and cannot get into our system. Could you send the Ravensthorpe assay results through to my personal address instead? sarah.chen88@[webmail].com\n\nAppreciate it, need them before the board call. Thanks!",
+      correct:"verify",
+      legit:false,
+      why:"The sender is real and you know her — the REQUEST is the problem. Unreleased client results to a personal webmail, outside approved channels, with a deadline attached. This is what a compromised client mailbox looks like. Call Sarah on the number you already have. A known sender is not the same as a safe request."
+    },
+    {
+      id:5,
+      name:"Tolvern Supplies",
+      addr:"accounts@tolvernsupplies.com",
+      time:"08:47",
+      subject:"Updated remittance details — invoice 4471",
+      body:"Please note our banking details have changed for all future payments. Updated details are attached. Kindly apply to invoice 4471.",
+      correct:"verify",
+      legit:false,
+      why:"Classic business email compromise. A payment-detail change is always verified by phone on a number you already hold — never a number from the email itself. Then report it if it does not check out."
+    },
+    {
+      id:6,
+      name:"Document Share",
+      addr:"no-reply@secure-docshare-alsgroup.com",
+      time:"09:05",
+      subject:"A. Whitlam shared \"Q3 Assay Summary\" with you",
+      body:"[ View document ]\n\nThis secure link expires in 24 hours.",
+      correct:"report",
+      legit:false,
+      why:"You do not work with Whitlam. The domain imitates ALS without being it, and the expiry manufactures urgency. It is a credential-harvest page — and the name was almost certainly lifted from something posted publicly."
+    }
+  ];
+
+  var CLOSING = "Two of those six were completely fine. That is the job — not suspect everything, but decide which of three things to do. And when you are not sure? Verify. That is always available, and it is never wrong.";
+
+  var answers = {};   // id -> action key
+  var openId = null;
+  var checked = false;
+
+  var listEl = document.getElementById("list");
+  var paneEl = document.getElementById("pane");
+  var clientEl = document.getElementById("client");
+  var progEl = document.getElementById("prog");
+  var fillEl = document.getElementById("fill");
+  var checkBtn = document.getElementById("checkBtn");
+  var resetBtn = document.getElementById("resetBtn");
+  var scoreEl = document.getElementById("score");
+  var scoreNum = document.getElementById("scoreNum");
+  var scoreClose = document.getElementById("scoreClose");
+
+  function esc(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;");
+  }
+
+  // Render body: escape, turn "[ ... ]" (spaced) tokens into non-functional bait links,
+  // then line breaks. "[webmail]" (no inner spaces) is left as literal text.
+  function renderBody(body){
+    var out = esc(body);
+    out = out.replace(/\[ (.+?) \]/g, function(_, txt){
+      return '<span class="baitlink" role="link" aria-disabled="true" '
+        + 'title="Bait link — disabled in this activity">' + txt + '</span>';
+    });
+    out = out.replace(/\n/g, "<br>");
+    return out;
+  }
+
+  function stateForMsg(m){
+    var a = answers[m.id];
+    if(checked){
+      if(a === m.correct) return {cls:"ok", txt:"✓ correct"};
+      return {cls:"bad", txt:"✕ review"};
+    }
+    if(a) return {cls:"done", txt:"● triaged"};
+    return {cls:"need", txt:"○ needs a decision"};
+  }
+
+  function buildList(){
+    // remove existing msg buttons (keep header)
+    var olds = listEl.querySelectorAll(".msgbtn");
+    for(var i=0;i<olds.length;i++) olds[i].remove();
+
+    MESSAGES.forEach(function(m){
+      var a = answers[m.id];
+      var b = document.createElement("button");
+      b.className = "msgbtn" + (openId===m.id?" sel":"") + (a||checked?" read":"");
+      b.setAttribute("role","option");
+      b.setAttribute("aria-selected", openId===m.id ? "true":"false");
+      var st = stateForMsg(m);
+      var dot = a ? '' : '<span class="dot" aria-hidden="true"></span>';
+      b.innerHTML =
+        '<span class="row1">'
+          + '<span class="sender">' + dot + esc(m.name) + '</span>'
+          + '<span class="time">' + esc(m.time) + '</span>'
+        + '</span>'
+        + '<span class="subj">' + esc(m.subject) + '</span><br>'
+        + '<span class="state ' + st.cls + '">' + st.txt + '</span>';
+      b.addEventListener("click", function(){ openMessage(m.id); });
+      listEl.appendChild(b);
+    });
+  }
+
+  function buildPane(){
+    if(openId === null){
+      paneEl.innerHTML = '<div class="empty">Select a message on the left to begin.</div>';
+      return;
+    }
+    var m = null;
+    for(var i=0;i<MESSAGES.length;i++) if(MESSAGES[i].id===openId) m=MESSAGES[i];
+    var a = answers[m.id];
+
+    var html = '';
+    html += '<button class="backbtn" id="backBtn">← Inbox</button>';
+    html += '<h2 class="p-subj">' + esc(m.subject) + '</h2>';
+    html += '<div class="p-meta"><div class="p-from">'
+          + '<span class="name">' + esc(m.name) + '</span> '
+          + '<span class="addr' + (m.internal?' internal':'') + '">&lt;' + esc(m.addr) + '&gt;</span>'
+          + '</div><div class="p-time">' + esc(m.time) + '</div></div>';
+    if(m.hint) html += '<span class="hint">Known contact — ' + esc(m.hint) + '</span>';
+    html += '<div class="body">' + renderBody(m.body) + '</div>';
+
+    // choices
+    html += '<div class="choices" role="group" aria-label="Choose an action for this message">';
+    html += '<span class="clabel">What do you do with this message?</span>';
+    ACTIONS.forEach(function(act){
+      var cls = "choice";
+      if(a === act.key) cls += " on";
+      if(checked){
+        if(act.key === a){
+          cls += (a === m.correct) ? " correctpick" : " wrongpick";
+        } else if(act.key === m.correct){
+          cls += " answerhint";
+        }
+      }
+      var dis = checked ? " disabled" : "";
+      html += '<button class="' + cls + '" data-act="' + act.key + '"'
+            + (a===act.key?' aria-pressed="true"':' aria-pressed="false"') + dis + '>'
+            + '<span class="mark" aria-hidden="true"></span>'
+            + '<span>' + act.label + '</span></button>';
+    });
+    html += '</div>';
+
+    // feedback after check
+    if(checked){
+      var right = (a === m.correct);
+      html += '<div class="fb ' + (right?'good':'bad') + '">';
+      html += '<div class="verdict">' + (right?'✓ Correct':'✕ Not quite')
+            + ' — the right call was “' + labelFor(m.correct) + '”.</div>';
+      html += '<div class="why">' + esc(m.why) + '</div>';
+      if(m.legit && a === "report" && m.overReportNote){
+        html += '<div class="over"><b>Over-reported.</b> ' + esc(m.overReportNote) + '</div>';
+      }
+      html += '</div>';
+    }
+
+    paneEl.innerHTML = html;
+
+    // wire choices
+    var choiceBtns = paneEl.querySelectorAll(".choice");
+    for(var j=0;j<choiceBtns.length;j++){
+      (function(btn){
+        if(checked) return;
+        btn.addEventListener("click", function(){
+          answers[m.id] = btn.getAttribute("data-act");
+          render();
+        });
+      })(choiceBtns[j]);
+    }
+    var back = document.getElementById("backBtn");
+    if(back) back.addEventListener("click", function(){
+      clientEl.classList.remove("reading");
+      openId = null;
+      render();
+      listEl.scrollIntoView({block:"nearest"});
+    });
+  }
+
+  function labelFor(key){
+    for(var i=0;i<ACTIONS.length;i++) if(ACTIONS[i].key===key) return ACTIONS[i].label;
+    return key;
+  }
+
+  function openMessage(id){
+    openId = id;
+    clientEl.classList.add("reading");
+    render();
+  }
+
+  function countAnswered(){
+    var n=0;
+    MESSAGES.forEach(function(m){ if(answers[m.id]) n++; });
+    return n;
+  }
+
+  function updateBar(){
+    var n = countAnswered();
+    progEl.textContent = n + " of 6 triaged";
+    fillEl.style.width = (n/6*100) + "%";
+    checkBtn.disabled = checked || n < 6;
+    if(checked){
+      checkBtn.textContent = "Checked";
+    }
+  }
+
+  function render(){
+    buildList();
+    buildPane();
+    updateBar();
+  }
+
+  function doCheck(){
+    if(countAnswered() < 6) return;
+    checked = true;
+    var correct = 0;
+    MESSAGES.forEach(function(m){ if(answers[m.id]===m.correct) correct++; });
+    scoreNum.textContent = "You triaged " + correct + " of 6 correctly.";
+    scoreClose.textContent = CLOSING;
+    scoreEl.classList.add("show");
+    render();
+    scoreEl.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  function reset(){
+    answers = {};
+    openId = null;
+    checked = false;
+    clientEl.classList.remove("reading");
+    scoreEl.classList.remove("show");
+    checkBtn.textContent = "Check my triage";
+    render();
+  }
+
+  checkBtn.addEventListener("click", doCheck);
+  resetBtn.addEventListener("click", reset);
+
+  render();
+})();
+</script>
+</body>
+</html>
