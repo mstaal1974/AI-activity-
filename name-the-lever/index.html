@@ -297,6 +297,17 @@
   var current = 0;
   var answered = false;
 
+  // Display order — reshuffled each run so the snippets aren't always in the
+  // same sequence. Fisher–Yates over the ITEMS indices.
+  var order = ITEMS.map(function(_, i){ return i; });
+  function shuffleOrder(){
+    for (var k = order.length - 1; k > 0; k--){
+      var j = Math.floor(Math.random() * (k + 1));
+      var tmp = order[k]; order[k] = order[j]; order[j] = tmp;
+    }
+  }
+  shuffleOrder();
+
   var dotsEl = document.getElementById("dots");
   var counterEl = document.getElementById("counter");
   var snippetTextEl = document.getElementById("snippetText");
@@ -333,7 +344,7 @@
   });
 
   function renderItem(){
-    var item = ITEMS[current];
+    var item = ITEMS[order[current]];
     answered = false;
 
     snippetTextEl.textContent = item.snippet;
@@ -367,7 +378,7 @@
     if (answered) return;
     answered = true;
 
-    var item = ITEMS[current];
+    var item = ITEMS[order[current]];
     var correct = (name === item.answer);
 
     // Lock all levers, show states
@@ -391,12 +402,15 @@
       : "Not quite — it’s " + item.answer + ".";
     whyEl.textContent = item.why;
 
-    // Final-item extras
-    if (current === ITEMS.length - 1){
-      if (item.beat){
-        beatEl.textContent = item.beat;
-        beatEl.hidden = false;
-      }
+    // The teaching "beat" belongs to its snippet (Familiarity), so show it
+    // whenever that snippet is answered — wherever it lands in the shuffle.
+    if (item.beat){
+      beatEl.textContent = item.beat;
+      beatEl.hidden = false;
+    }
+
+    // End-of-sequence extras: closing line + done, on whichever item is last.
+    if (current === order.length - 1){
       closingEl.textContent = CLOSING;
       closingEl.hidden = false;
       doneMsg.hidden = false;
@@ -409,13 +423,14 @@
   }
 
   nextBtn.addEventListener("click", function(){
-    if (current < ITEMS.length - 1){
+    if (current < order.length - 1){
       current++;
       renderItem();
     }
   });
 
   resetBtn.addEventListener("click", function(){
+    shuffleOrder();
     current = 0;
     renderItem();
   });
