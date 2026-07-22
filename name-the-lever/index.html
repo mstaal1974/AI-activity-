@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Name the lever · Phishing &amp; Social Engineering · ABC Training &amp; Consulting</title>
+<meta name="description" content="A short classify activity: read six real-sounding message snippets and name the psychological lever each one is pulling — Authority, Urgency, Fear, Curiosity, Helpfulness or Familiarity.">
+<style>
+  :root{
+    --navy:#191246;
+    --green:#336633;
+    --grey:#666666;
+    --red:#b23b4a;
+    --paper:#eceef1;
+    --card:#ffffff;
+    --ink:#2a2740;
+    --navy-soft:#f0eefb;
+    --green-tint:#eef4ee;
+    --red-tint:#fbeef0;
+    --line:#e3e3e8;
+    --font: 'Raleway', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(12px,3vw,28px);
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+
+  /* Header */
+  .topline{
+    display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    flex-wrap:wrap;
+    font-size:11px;text-transform:uppercase;letter-spacing:.18em;font-weight:700;
+  }
+  .topline .org{color:var(--grey);}
+  .topline .course{color:var(--navy);}
+  .tag{
+    display:inline-block;margin:14px 0 16px;
+    background:var(--navy-soft);color:var(--navy);
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
+    padding:8px 12px;border-radius:99px;
+  }
+
+  /* Card */
+  .card{
+    background:var(--card);
+    border-radius:18px;
+    box-shadow:0 12px 40px -12px rgba(25,18,70,.22);
+    padding:clamp(22px,4vw,44px);
+  }
+  h1{
+    margin:0 0 6px;
+    color:var(--navy);
+    font-weight:800;
+    font-size:clamp(24px,3.2vw,32px);
+    line-height:1.15;
+  }
+  .prompt{margin:0 0 22px;font-weight:500;font-size:16px;color:#3a3752;}
+
+  /* Progress */
+  .progress{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;
+  }
+  .dots{display:flex;gap:7px;}
+  .dot{
+    width:9px;height:9px;border-radius:50%;background:var(--line);
+    transition:background .2s ease, transform .2s ease;
+  }
+  .dot.done{background:var(--green);}
+  .dot.current{background:var(--navy);transform:scale(1.25);}
+  .counter{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;}
+
+  /* Snippet card */
+  .snippet{
+    position:relative;
+    background:var(--navy);
+    color:#fff;
+    border-radius:14px;
+    padding:clamp(22px,4vw,34px);
+    padding-right:64px;
+    margin-bottom:20px;
+  }
+  .snippet .quote{
+    font-size:clamp(17px,2.4vw,21px);
+    font-weight:500;
+    line-height:1.5;
+  }
+  .snippet .index{
+    position:absolute;top:14px;right:16px;
+    font-size:12px;font-weight:700;letter-spacing:.08em;
+    color:rgba(255,255,255,.62);
+  }
+
+  /* Lever grid */
+  .levers{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .lever{
+    font-family:var(--font);
+    font-size:15px;font-weight:700;
+    color:var(--navy);
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:14px 10px;
+    cursor:pointer;
+    text-align:center;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .lever:hover:not(:disabled){border-color:var(--navy);}
+  .lever:active:not(:disabled){transform:translateY(1px);}
+  .lever:disabled{cursor:default;}
+  .lever:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}
+  .lever .mark{font-weight:800;margin-right:4px;}
+  .lever.correct{
+    background:var(--green-tint);
+    border-color:var(--green);
+    color:var(--green);
+  }
+  .lever.wrong{
+    background:var(--red-tint);
+    border-color:var(--red);
+    color:var(--red);
+  }
+
+  /* Feedback */
+  .feedback{
+    margin-top:18px;
+    border-radius:12px;
+    border-left:4px solid var(--line);
+    background:#faf9fd;
+    padding:16px 18px;
+  }
+  .feedback[hidden]{display:none;}
+  .feedback.correct{background:var(--green-tint);border-left-color:var(--green);}
+  .feedback.wrong{background:var(--red-tint);border-left-color:var(--red);}
+  .feedback .verdict{font-weight:800;color:var(--navy);margin-bottom:4px;font-size:16px;}
+  .feedback .why{color:#3a3752;font-size:15px;}
+
+  /* Beat panel */
+  .beat{
+    margin-top:16px;
+    border-top:2px dashed var(--navy);
+    padding-top:14px;
+    color:var(--navy);
+    font-size:15px;
+    font-weight:500;
+  }
+  .beat[hidden]{display:none;}
+
+  /* Closing */
+  .closing{
+    margin-top:16px;
+    background:var(--navy-soft);
+    border-radius:12px;
+    padding:16px 18px;
+    color:var(--navy);
+    font-size:15px;
+    font-weight:600;
+  }
+  .closing[hidden]{display:none;}
+
+  /* Controls */
+  .controls{
+    margin-top:20px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .btn{
+    font-family:var(--font);font-size:15px;font-weight:700;
+    border-radius:10px;padding:12px 20px;cursor:pointer;
+    border:2px solid transparent;
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:hover{background:#241a5e;}
+  .btn-primary[hidden]{display:none;}
+  .btn-ghost{background:transparent;color:var(--grey);border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+  .done-msg{font-weight:800;color:var(--green);font-size:16px;}
+  .done-msg[hidden]{display:none;}
+
+  /* Footer */
+  footer{
+    margin:22px 4px 6px;color:var(--grey);font-size:12px;line-height:1.6;
+  }
+
+  @media (max-width:560px){
+    .levers{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="topline">
+      <span class="org">ABC Training &amp; Consulting · RTO 5800</span>
+      <span class="course">Course 1.9 · Lesson 2 — Phishing</span>
+    </div>
+    <span class="tag">CLASSIFY · 6 ITEMS · ~4 MIN</span>
+  </header>
+
+  <main class="card">
+    <h1>Name the lever</h1>
+    <p class="prompt">Every one of these worked on someone. What&rsquo;s it pulling?</p>
+
+    <div class="progress">
+      <div class="dots" id="dots" aria-hidden="true"></div>
+      <span class="counter" id="counter">1 / 6</span>
+    </div>
+
+    <div class="snippet">
+      <span class="index" id="snippetIndex">1 / 6</span>
+      <p class="quote" id="snippetText"></p>
+    </div>
+
+    <div class="levers" id="levers" role="group" aria-label="Choose the lever this message is pulling"></div>
+
+    <div class="feedback" id="feedback" hidden aria-live="polite">
+      <div class="verdict" id="verdict"></div>
+      <div class="why" id="why"></div>
+    </div>
+
+    <div class="beat" id="beat" hidden></div>
+    <div class="closing" id="closing" hidden></div>
+
+    <div class="controls">
+      <div>
+        <button class="btn btn-primary" id="nextBtn" hidden>Next item &rarr;</button>
+        <span class="done-msg" id="doneMsg" hidden>You can name all six &#10003;</span>
+      </div>
+      <button class="btn btn-ghost" id="resetBtn">Start again</button>
+    </div>
+  </main>
+
+  <footer>
+    Interactive learning activity · All senders, domains, people and results are fictional.<br>
+    ABC Training &amp; Consulting (RTO 5800) · Course 1.9 Lesson 2
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LEVERS = ["Authority","Urgency","Fear","Curiosity","Helpfulness","Familiarity"];
+
+  var ITEMS = [
+    {
+      snippet: "“As Quality Manager I need this processed before I sign off today.”",
+      answer: "Authority",
+      why: "We act on instruction from senior people — and tend not to query it."
+    },
+    {
+      snippet: "“Accreditation submission overdue — respond within 2 hours to avoid suspension.”",
+      answer: "Urgency",
+      why: "A deadline removes the pause in which you would have thought about it."
+    },
+    {
+      snippet: "“Unusual sign-in detected. Your account will be locked unless you verify now.”",
+      answer: "Fear",
+      why: "Fear of consequence makes you act to make the feeling stop."
+    },
+    {
+      snippet: "“Please see attached regarding a query on your recent result.”",
+      answer: "Curiosity",
+      why: "Vague and about you — you open it to find out. That’s the whole payload."
+    },
+    {
+      snippet: "“Hi, I’m the new contractor — forgot my pass. Could you badge me in?”",
+      answer: "Helpfulness",
+      why: "It exploits ordinary decency. Refusing feels like being a bad colleague."
+    },
+    {
+      snippet: "“Hi Sam — how’d the new ICP-MS install go? Quick one about the firmware…”",
+      answer: "Familiarity",
+      why: "They know your name, your instrument, your week. Recognition lowers your guard.",
+      beat: "Where did they get your name, your instrument and the fact it was just installed? Usually from something posted publicly. Familiarity isn’t proof of anything — it’s just homework."
+    }
+  ];
+
+  var CLOSING = "Naming the pressure is what makes it resistible. An unnamed feeling of urgency just makes you comply faster — once you can say “that’s urgency” or “that’s authority” out loud, the pull loses its grip and you can slow down and check.";
+
+  var current = 0;
+  var answered = false;
+
+  var dotsEl = document.getElementById("dots");
+  var counterEl = document.getElementById("counter");
+  var snippetTextEl = document.getElementById("snippetText");
+  var snippetIndexEl = document.getElementById("snippetIndex");
+  var leversEl = document.getElementById("levers");
+  var feedbackEl = document.getElementById("feedback");
+  var verdictEl = document.getElementById("verdict");
+  var whyEl = document.getElementById("why");
+  var beatEl = document.getElementById("beat");
+  var closingEl = document.getElementById("closing");
+  var nextBtn = document.getElementById("nextBtn");
+  var doneMsg = document.getElementById("doneMsg");
+  var resetBtn = document.getElementById("resetBtn");
+
+  // Build dots once
+  for (var i = 0; i < ITEMS.length; i++){
+    var d = document.createElement("span");
+    d.className = "dot";
+    dotsEl.appendChild(d);
+  }
+  var dotEls = dotsEl.querySelectorAll(".dot");
+
+  // Build lever buttons once
+  var leverBtns = {};
+  LEVERS.forEach(function(name){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "lever";
+    b.textContent = name;
+    b.setAttribute("data-lever", name);
+    b.addEventListener("click", function(){ onChoose(name); });
+    leversEl.appendChild(b);
+    leverBtns[name] = b;
+  });
+
+  function renderItem(){
+    var item = ITEMS[current];
+    answered = false;
+
+    snippetTextEl.textContent = item.snippet;
+    var label = (current + 1) + " / " + ITEMS.length;
+    snippetIndexEl.textContent = label;
+    counterEl.textContent = label;
+
+    // dots
+    dotEls.forEach(function(dot, idx){
+      dot.className = "dot" + (idx < current ? " done" : (idx === current ? " current" : ""));
+    });
+
+    // reset levers
+    LEVERS.forEach(function(name){
+      var b = leverBtns[name];
+      b.className = "lever";
+      b.disabled = false;
+      b.textContent = name;
+    });
+
+    // reset panels
+    feedbackEl.hidden = true;
+    feedbackEl.className = "feedback";
+    beatEl.hidden = true;
+    closingEl.hidden = true;
+    nextBtn.hidden = true;
+    doneMsg.hidden = true;
+  }
+
+  function onChoose(name){
+    if (answered) return;
+    answered = true;
+
+    var item = ITEMS[current];
+    var correct = (name === item.answer);
+
+    // Lock all levers, show states
+    LEVERS.forEach(function(lname){
+      var b = leverBtns[lname];
+      b.disabled = true;
+      if (lname === item.answer){
+        b.classList.add("correct");
+        b.innerHTML = "<span class=\"mark\">✓</span>" + lname;
+      } else if (lname === name){
+        b.classList.add("wrong");
+        b.innerHTML = "<span class=\"mark\">✕</span>" + lname;
+      }
+    });
+
+    // Feedback
+    feedbackEl.hidden = false;
+    feedbackEl.className = "feedback " + (correct ? "correct" : "wrong");
+    verdictEl.textContent = correct
+      ? "Yes — " + item.answer + "."
+      : "Not quite — it’s " + item.answer + ".";
+    whyEl.textContent = item.why;
+
+    // Final-item extras
+    if (current === ITEMS.length - 1){
+      if (item.beat){
+        beatEl.textContent = item.beat;
+        beatEl.hidden = false;
+      }
+      closingEl.textContent = CLOSING;
+      closingEl.hidden = false;
+      doneMsg.hidden = false;
+      // mark final dot done
+      dotEls[current].className = "dot done";
+    } else {
+      nextBtn.hidden = false;
+      nextBtn.focus();
+    }
+  }
+
+  nextBtn.addEventListener("click", function(){
+    if (current < ITEMS.length - 1){
+      current++;
+      renderItem();
+    }
+  });
+
+  resetBtn.addEventListener("click", function(){
+    current = 0;
+    renderItem();
+  });
+
+  renderItem();
+})();
+</script>
+</body>
+</html>
