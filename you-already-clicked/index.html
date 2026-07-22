@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You already clicked · Course 1.9 Lesson 2 — Phishing</title>
+<meta name="description" content="A sort/sequence e-learning activity about the five minutes after you click a phishing link — the recovery drill. Sort nine actions into Next five minutes, Today, or Don't do this.">
+<style>
+  :root{
+    --navy:#191246;
+    --green:#336633;
+    --grey:#666666;
+    --red:#b23b4a;
+    --paper:#eceef1;
+    --card:#ffffff;
+    --ink:#2a2740;
+    --navy-soft:#f0eefb;
+    --green-tint:#eef4ee;
+    --red-tint:#fbeef0;
+    --line:#e3e3e8;
+    --amber:#8a5a11;
+    --amber-tint:#fbf1df;
+    --amber-line:#e7c887;
+    --font:'Raleway', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:clamp(12px,3vw,28px);
+  }
+  /* Header */
+  header.masthead{margin:0 2px 14px;}
+  .masthead-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .kicker{
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--grey);
+    font-weight:700;
+  }
+  .kicker.right{color:var(--navy);}
+  .tag{
+    display:inline-block;
+    margin-top:12px;
+    background:var(--navy-soft);
+    color:var(--navy);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    border-radius:99px;
+    padding:8px 14px;
+  }
+  /* Card */
+  .card{
+    background:var(--card);
+    border-radius:18px;
+    box-shadow:0 12px 40px -12px rgba(25,18,70,.22);
+    padding:clamp(22px,4vw,44px);
+  }
+  h1{
+    font-weight:800;
+    font-size:clamp(24px,3.2vw,32px);
+    color:var(--navy);
+    margin:0 0 6px;
+    line-height:1.15;
+  }
+  .prompt{
+    font-weight:500;
+    font-size:16px;
+    color:#3a3752;
+    margin:0 0 20px;
+  }
+  /* Setup panel (amber) */
+  .setup{
+    background:var(--amber-tint);
+    border:1px solid var(--amber-line);
+    border-left:4px solid var(--amber);
+    border-radius:12px;
+    padding:16px 18px;
+    margin:0 0 22px;
+    color:#4a3814;
+    font-size:15px;
+  }
+  .setup strong{color:var(--amber);}
+  /* Buckets legend */
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:0 0 18px;
+    font-size:13px;
+  }
+  .legend .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-weight:700;
+    padding:6px 12px;
+    border-radius:99px;
+    border:1px solid var(--line);
+    background:#fafafb;
+  }
+  .dot{width:11px;height:11px;border-radius:50%;flex:none;}
+  .dot.g{background:var(--green);}
+  .dot.n{background:var(--navy);}
+  .dot.r{background:var(--red);}
+  .instruction{
+    font-size:14px;
+    color:var(--grey);
+    margin:0 0 8px;
+  }
+  .progress{
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy);
+    margin:0 0 16px;
+  }
+  /* Cards list */
+  ol.cards{list-style:none;margin:0 0 8px;padding:0;}
+  li.qcard{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 18px;
+    margin:0 0 14px;
+    background:#fff;
+    transition:border-color .18s ease, background .18s ease;
+  }
+  li.qcard.assigned{border-color:#c9c6de;}
+  li.qcard.correct{background:var(--green-tint);border-color:#bcd4bc;}
+  li.qcard.incorrect{background:var(--red-tint);border-color:#e6bcc4;}
+  .qtext{
+    font-weight:600;
+    font-size:16px;
+    color:var(--ink);
+    margin:0 0 12px;
+    display:flex;
+    gap:9px;
+  }
+  .qnum{
+    color:var(--navy);
+    font-weight:800;
+    flex:none;
+  }
+  .bucket-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .bkt{
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--ink);
+    background:#f6f6f8;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:9px 13px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .bkt:hover{border-color:#bdbad0;}
+  .bkt .dot{width:10px;height:10px;}
+  .bkt[aria-pressed="true"]{
+    color:#fff;
+    border-color:transparent;
+  }
+  .bkt.g[aria-pressed="true"]{background:var(--green);}
+  .bkt.n[aria-pressed="true"]{background:var(--navy);}
+  .bkt.r[aria-pressed="true"]{background:var(--red);}
+  .bkt[aria-pressed="true"] .dot{background:rgba(255,255,255,.9);}
+  .bkt:disabled{cursor:default;opacity:1;}
+  .bkt:disabled:not([aria-pressed="true"]){opacity:.45;}
+  /* Focus */
+  .bkt:focus-visible,
+  button:focus-visible{
+    outline:2px solid var(--navy);
+    outline-offset:2px;
+  }
+  /* Verdict/feedback per card */
+  .verdict{
+    margin-top:13px;
+    border-radius:12px;
+    border-left:4px solid var(--grey);
+    background:#f7f7f9;
+    padding:12px 14px;
+    font-size:14.5px;
+  }
+  .verdict.g{background:var(--green-tint);border-left-color:var(--green);}
+  .verdict.r{background:var(--red-tint);border-left-color:var(--red);}
+  .verdict .vline{
+    font-weight:800;
+    color:var(--navy);
+    display:block;
+    margin-bottom:3px;
+  }
+  .verdict .why{color:#3a3752;}
+  /* Controls */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    margin-top:18px;
+  }
+  .btn{
+    font-family:inherit;
+    font-weight:800;
+    font-size:15px;
+    border-radius:11px;
+    padding:12px 22px;
+    cursor:pointer;
+    border:1.5px solid transparent;
+    transition:background .15s ease, opacity .15s ease;
+  }
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:hover:not(:disabled){background:#241a5e;}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-ghost{background:#fff;color:var(--navy);border-color:#cdcadf;}
+  .btn-ghost:hover{background:var(--navy-soft);}
+  /* Result / score */
+  .result{
+    margin-top:20px;
+    border-radius:14px;
+    background:var(--navy-soft);
+    border:1px solid #ddd7f4;
+    padding:18px 20px;
+  }
+  .result[hidden]{display:none;}
+  .score{
+    font-size:20px;
+    font-weight:800;
+    color:var(--navy);
+    margin:0 0 8px;
+  }
+  .closing{
+    font-size:15px;
+    color:#3a3752;
+    margin:0;
+  }
+  /* Localise note */
+  .als-note{
+    margin-top:18px;
+    border-radius:12px;
+    border:1px dashed var(--amber-line);
+    background:var(--amber-tint);
+    padding:13px 15px;
+    font-size:13px;
+    color:#4a3814;
+  }
+  .als-note strong{color:var(--amber);}
+  /* Footer */
+  footer.small{
+    margin:16px 4px 4px;
+    font-size:12px;
+    color:var(--grey);
+    line-height:1.6;
+  }
+  footer.small span{display:block;}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  @media (max-width:520px){
+    .qtext{font-size:15px;}
+    .bkt{flex:1 1 100%;justify-content:center;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead-row">
+      <span class="kicker">ABC Training &amp; Consulting · RTO 5800</span>
+      <span class="kicker right">Course 1.9 · Lesson 2 — Phishing</span>
+    </div>
+    <span class="tag">SORT · 9 CARDS · ~5 MIN</span>
+  </header>
+
+  <main class="card">
+    <h1>You already clicked</h1>
+    <p class="prompt">Sort each action into the bucket where it belongs.</p>
+
+    <div class="setup">
+      You clicked the link. You typed your password before it clicked that something was off.
+      It’s been about ninety seconds. Nobody is going to shout at you — but <strong>what you do in
+      the next five minutes matters more than anything else in this lesson.</strong>
+    </div>
+
+    <p class="instruction">Give every card a bucket, then check your sorting.</p>
+    <div class="legend" role="list" aria-label="The three buckets">
+      <span class="chip" role="listitem"><span class="dot g"></span>Next five minutes</span>
+      <span class="chip" role="listitem"><span class="dot n"></span>Today</span>
+      <span class="chip" role="listitem"><span class="dot r"></span>Don’t do this</span>
+    </div>
+
+    <p class="progress" id="progress" aria-live="polite">0 of 9 sorted</p>
+
+    <ol class="cards" id="cards"></ol>
+
+    <div class="controls">
+      <button type="button" class="btn btn-primary" id="checkBtn" disabled>Check my sorting</button>
+      <button type="button" class="btn btn-ghost" id="resetBtn">Start again</button>
+    </div>
+
+    <section class="result" id="result" hidden aria-live="polite">
+      <p class="score" id="score"></p>
+      <p class="closing">The clock that matters started when you clicked — not when you admit it.
+        Reporting fast is not an apology. It’s the fix.</p>
+    </section>
+
+    <div class="als-note">
+      <strong>Note for ALS:</strong> before publishing, localise the four “next five minutes”
+      steps and the reporting contacts to ALS’s actual incident-response procedure. Where ALS’s
+      IR steps differ from the wording here, ALS’s procedure takes precedence.
+    </div>
+  </main>
+
+  <footer class="small">
+    <span>Interactive learning activity · All senders, domains, people and results are fictional.</span>
+    <span>ABC Training &amp; Consulting (RTO 5800) · Course 1.9 Lesson 2</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BUCKETS = {
+    five:  { label:"Next five minutes", cls:"g" },
+    today: { label:"Today",             cls:"n" },
+    dont:  { label:"Don’t do this",     cls:"r" }
+  };
+
+  var CARDS = [
+    { text:"Report it to IT / security straight away", answer:"five",
+      why:"They can disable the session and block the sender while it still matters — the highest-value thing you can do." },
+    { text:"Change your password", answer:"five",
+      why:"Ideally from a different device you trust. Stops the stolen one working." },
+    { text:"Tell your manager", answer:"five",
+      why:"So the response is not depending on one person reading their inbox." },
+    { text:"Decline any MFA prompt you didn’t start", answer:"five",
+      why:"They have your password now — the prompt is them trying to finish the job." },
+    { text:"Change it anywhere you reused that password", answer:"today",
+      why:"Reuse is how one compromised login becomes several." },
+    { text:"Expect a follow-up call claiming to be IT", answer:"today",
+      why:"A common second act — they use the panic they just created." },
+    { text:"Delete the email so nobody sees it", answer:"dont",
+      why:"Destroys what IT needs to find everyone else who got it." },
+    { text:"Wait and see whether anything bad happens", answer:"dont",
+      why:"The waiting is the damage. Every minute is a minute they have your login." },
+    { text:"Click the link again to check where it goes", answer:"dont",
+      why:"Nothing to gain, more to give away." }
+  ];
+
+  var TOTAL = CARDS.length;
+  var state = new Array(TOTAL).fill(null); // chosen bucket key per card
+  var checked = false;
+
+  var listEl = document.getElementById("cards");
+  var progressEl = document.getElementById("progress");
+  var checkBtn = document.getElementById("checkBtn");
+  var resetBtn = document.getElementById("resetBtn");
+  var resultEl = document.getElementById("result");
+  var scoreEl = document.getElementById("score");
+
+  var bucketOrder = ["five","today","dont"];
+
+  function build(){
+    listEl.innerHTML = "";
+    CARDS.forEach(function(card, i){
+      var li = document.createElement("li");
+      li.className = "qcard";
+      li.id = "card-" + i;
+
+      var q = document.createElement("p");
+      q.className = "qtext";
+      q.innerHTML = '<span class="qnum">' + (i+1) + '.</span><span>' +
+        escapeHtml(card.text) + '</span>';
+      li.appendChild(q);
+
+      var row = document.createElement("div");
+      row.className = "bucket-row";
+      row.setAttribute("role","group");
+      row.setAttribute("aria-label","Choose a bucket for: " + card.text);
+
+      bucketOrder.forEach(function(key){
+        var b = BUCKETS[key];
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "bkt " + b.cls;
+        btn.setAttribute("aria-pressed","false");
+        btn.dataset.card = i;
+        btn.dataset.bucket = key;
+        btn.innerHTML = '<span class="dot"></span>' + escapeHtml(b.label);
+        btn.addEventListener("click", onChoose);
+        row.appendChild(btn);
+      });
+      li.appendChild(row);
+
+      var v = document.createElement("div");
+      v.className = "verdict";
+      v.id = "verdict-" + i;
+      v.hidden = true;
+      li.appendChild(v);
+
+      listEl.appendChild(li);
+    });
+    updateProgress();
+  }
+
+  function onChoose(e){
+    if(checked) return;
+    var btn = e.currentTarget;
+    var idx = parseInt(btn.dataset.card, 10);
+    var key = btn.dataset.bucket;
+    state[idx] = key;
+
+    // reset siblings in this card
+    var li = document.getElementById("card-" + idx);
+    var btns = li.querySelectorAll(".bkt");
+    btns.forEach(function(b){ b.setAttribute("aria-pressed","false"); });
+    btn.setAttribute("aria-pressed","true");
+    li.classList.add("assigned");
+
+    updateProgress();
+  }
+
+  function countAssigned(){
+    return state.filter(function(v){ return v !== null; }).length;
+  }
+
+  function updateProgress(){
+    var n = countAssigned();
+    progressEl.textContent = n + " of " + TOTAL + " sorted";
+    checkBtn.disabled = (n < TOTAL) || checked;
+  }
+
+  function check(){
+    if(countAssigned() < TOTAL) return;
+    checked = true;
+    var correct = 0;
+
+    CARDS.forEach(function(card, i){
+      var li = document.getElementById("card-" + i);
+      var isRight = state[i] === card.answer;
+      if(isRight) correct++;
+
+      // lock buttons, keep chosen visible
+      li.querySelectorAll(".bkt").forEach(function(b){ b.disabled = true; });
+
+      li.classList.remove("assigned");
+      li.classList.add(isRight ? "correct" : "incorrect");
+
+      var v = document.getElementById("verdict-" + i);
+      v.className = "verdict " + (isRight ? "g" : "r");
+      var vline = isRight
+        ? "✓ Correct"
+        : 'Belongs in “' + BUCKETS[card.answer].label + '”';
+      v.innerHTML = '<span class="vline">' + escapeHtml(vline) + '</span>' +
+        '<span class="why">' + escapeHtml(card.why) + '</span>';
+      v.hidden = false;
+    });
+
+    scoreEl.textContent = correct + " of " + TOTAL + " sorted correctly.";
+    resultEl.hidden = false;
+    checkBtn.disabled = true;
+    resultEl.focus && resultEl.setAttribute("tabindex","-1");
+    resultEl.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  function reset(){
+    state = new Array(TOTAL).fill(null);
+    checked = false;
+    resultEl.hidden = true;
+    build();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  checkBtn.addEventListener("click", check);
+  resetBtn.addEventListener("click", reset);
+
+  build();
+})();
+</script>
+</body>
+</html>
